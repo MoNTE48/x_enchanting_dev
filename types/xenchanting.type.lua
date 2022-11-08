@@ -1,0 +1,3 @@
+---@diagnostic disable: codestyle-check
+---Base class XBows
+---@class XEnchanting
