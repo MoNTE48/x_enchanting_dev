@@ -21,7 +21,8 @@
             "/docs",
             "/bin"
         ],
-        "checkThirdParty": false
+        "checkThirdParty": false,
+        "useGitIgnore": true
     },
     "typeFormat": {
         "config": {
@@ -55,7 +56,9 @@
         "ignoredFiles": "Disable",
         "libraryFiles": "Disable",
         "neededFileStatus": {
-            "codestyle-check": "Any"
+            "codestyle-check": "Opened",
+            "param-type-mismatch": "Opened",
+            "assign-type-mismatch": "Opened"
         },
         "disableScheme": [
             "git",

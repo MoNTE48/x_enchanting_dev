@@ -99,7 +99,7 @@ pipelines:
                     - nvm
                 script:
                     - nvm use v17.2.0
-                    - npm run push:ci -- --token=$CONTENT_DB_X_ENCHATING_TOKEN --title=$BITBUCKET_TAG
+                    - npm run push:ci -- --token=$CONTENT_DB_X_ENCHANTING_TOKEN --title=$BITBUCKET_TAG
 definitions:
     caches:
         node-modules: ./node_modules

@@ -1,0 +1,11 @@
+# textdomain: x_enchanting
+Sharpness=
+Fortune=
+Unbreaking=
+Efficiency=
+Enchanted=
+Enchant=
+level=
+Enchanting Table=
+owned by=
+Scroll of Enchantments=

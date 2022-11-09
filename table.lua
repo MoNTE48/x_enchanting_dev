@@ -1,12 +1,14 @@
 screwdriver = minetest.global_exists('screwdriver') and screwdriver --[[@as MtgScrewdriver]]
 
+local S = minetest.get_translator(minetest.get_current_modname())
+
 ----
 --- Table Node
 ----
 
 minetest.register_node('x_enchanting:table', {
-    description = 'Enchating Table',
-    short_description = 'Enchating Table',
+    description = S('Enchanting Table'),
+    short_description = S('Enchanting Table'),
     drawtype = 'mesh',
     mesh = 'x_enchanting_table.obj',
     tiles = { 'x_enchanting_table.png' },
@@ -46,7 +48,7 @@ minetest.register_node('x_enchanting:table', {
         local meta = minetest.get_meta(pos)
         local inv = meta:get_inventory()
 
-        meta:set_string('infotext', 'Enchating Table')
+        meta:set_string('infotext', S('Enchanting Table'))
         meta:set_string('owner', '')
         inv:set_size('item', 1)
         inv:set_size('trade', 1)
@@ -67,7 +69,7 @@ minetest.register_node('x_enchanting:table', {
         local player_name = placer:get_player_name()
 
         meta:set_string('owner', player_name)
-        meta:set_string('infotext', 'Enchating Table (owned by ' .. player_name .. ')')
+        meta:set_string('infotext', S('Enchanting Table') .. ' (' .. S('owned by') .. ' ' .. player_name .. ')')
     end,
     ---@param pos Vector
     ---@param node NodeDef
@@ -216,7 +218,7 @@ minetest.register_node('x_enchanting:table', {
         local bookshelfs = minetest.find_nodes_in_area(
             { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
             { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
-            { 'default:bookshelf' }
+            { 'default:bookshelf', 'group:bookshelf' }
         )
 
         if #bookshelfs == 0 then
@@ -332,7 +334,7 @@ minetest.register_node('x_enchanting:table', {
             local bookshelfs = minetest.find_nodes_in_area(
                 { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
                 { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
-                { 'default:bookshelf' }
+                { 'default:bookshelf', 'group:bookshelf' }
             )
 
             local item_stack = inv:get_stack('item', 1)
@@ -360,7 +362,7 @@ minetest.register_node('x_enchanting:table', {
             local bookshelfs = minetest.find_nodes_in_area(
                 { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
                 { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
-                { 'default:bookshelf' }
+                { 'default:bookshelf', 'group:bookshelf' }
             )
 
             local item_stack = inv:get_stack('item', 1)
@@ -457,7 +459,7 @@ minetest.register_entity('x_enchanting:table_scroll', {
         visual_size = { x = 1, y = 1, z = 1 },
         glow = 1,
         pointable = false,
-        infotext = 'Scroll of Enchantments',
+        infotext = S('Scroll of Enchantments'),
     },
     ---@param self table
     ---@param killer ObjectRef

@@ -1,5 +1,7 @@
 default = minetest.global_exists('default') and default --[[@as MtgDefault]]
 
+local S = minetest.get_translator(minetest.get_current_modname())
+
 ---@type XEnchanting
 XEnchanting = {
     tools_enchantability = {
@@ -50,7 +52,7 @@ XEnchanting = {
         -- Living things like animals and the player. This could imply
         -- some blood effects when hitting
         sharpness = {
-            name = 'Sharpness',
+            name = S('Sharpness'),
             -- what level should be taken, `level = min/max values`
             final_level_range = {
                 [1] = { 1, 21 },
@@ -70,7 +72,7 @@ XEnchanting = {
             weight = 10
         },
         fortune = {
-            name = 'Fortune',
+            name = S('Fortune'),
             -- what level should be taken, `level = min/max values`
             final_level_range = {
                 [1] = { 15, 65 },
@@ -86,7 +88,7 @@ XEnchanting = {
             weight = 2
         },
         unbreaking = {
-            name = 'Unbreaking',
+            name = S('Unbreaking'),
             -- what level should be taken, `level = min/max values`
             final_level_range = {
                 [1] = { 5, 55 },
@@ -102,7 +104,7 @@ XEnchanting = {
             weight = 5
         },
         efficiency = {
-            name = 'Efficiency',
+            name = S('Efficiency'),
             -- what level should be taken, `level = min/max values`
             final_level_range = {
                 [1] = { 1, 51 },
@@ -330,7 +332,7 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
         end
     end
 
-    enchantments_desc = '\n' .. minetest.colorize('#AE81FF', 'Enchanted')
+    enchantments_desc = '\n' .. minetest.colorize('#AE81FF', S('Enchanted'))
         .. '\n' .. table.concat(enchantments_desc, '\n')
     enchantments_desc_masked = table.concat(enchantments_desc_masked, '') .. '...?'
 
@@ -353,7 +355,7 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, capabilities, desc
 
     stack_meta:set_tool_capabilities(capabilities)
     stack_meta:set_string('description', itemstack:get_description() .. '\n' .. description)
-    stack_meta:set_string('short_description', 'Enchanted ' .. itemstack:get_short_description())
+    stack_meta:set_string('short_description', S('Enchanted') .. ' ' .. itemstack:get_short_description())
     stack_meta:set_int('is_enchanted', 1)
 
     inv:set_stack('item', 1, itemstack)
@@ -423,7 +425,6 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         -- 2 Find possible enchantments
         ----
 
-        ---@type {["id"]: string, ["value"]: number | table, ["level"]: number}[]
         local possible_enchantments = {}
 
         -- Get level
@@ -456,7 +457,6 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         -- 3 Select a set of enchantments from the list
         ----
 
-        ---@type {["id"]: string, ["value"]: number | table, ["level"]: number}[]
         local final_enchantments = {}
         local total_weight = 0
 
@@ -496,11 +496,6 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
     return data
 end
 
----Build form
----@param pos Vector
----@param player_name string
----@param data? table
----@return string
 function XEnchanting.get_formspec(self, pos, player_name, data)
     local spos = pos.x .. ',' .. pos.y .. ',' .. pos.z
     local inv = minetest.get_meta(pos):get_inventory()
@@ -512,7 +507,7 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
     local formspec = {
         'size[8,9]',
-        'label[0, 0;Enchant]',
+        'label[0, 0;' .. S('Enchant') .. ']',
         'list[nodemeta:' .. spos .. ';item;0, 2.5;1, 1;]',
         'image[1,2.5;1,1;x_enchanting_trade_slot.png;]',
         'list[nodemeta:' .. spos .. ';trade;1, 2.5;1, 1;]',
@@ -536,10 +531,10 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
                 if inv:get_stack('trade', 1):get_count() >= i then
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', 'level: ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
                 else
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', 'level: ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
                 end
 
                 formspec[#formspec + 1] = 'image[2.5,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'

@@ -10,13 +10,13 @@
 ---@field get_enchanted_tool_capabilities fun(self: XEnchanting, tool_def: ItemDef, enchantments: Enchantments[]): GetEnchantedToolCapabilitiesReturn Applies enchantments to item tool capabilities.
 ---@field set_enchanted_tool fun(self: XEnchanting, pos: Vector, itemstack: ItemStack, capabilities: ToolCapabilitiesDef, description: string, level: number, player_name: string): nil Set choosen enchantment and its modified tool capabilities to itemstack and `item` inventory. This will also get new `randomseed`.
 ---@field get_enchantment_data fun(self: XEnchanting, nr_of_bookshelfs: number, tool_def: ItemDef): EnchantmentData Algoritm to get aplicable random enchantments.
----@field get_formspec fun(self: XEnchanting, pos, player_name, data): string Builds and returns `formspec` string
+---@field get_formspec fun(self: XEnchanting, pos: Vector, player_name: string, data?: EnchantmentData): string Builds and returns `formspec` string
 
 
 ---Enchantment definition
 ---@class EnchantmentDef
 ---@field name string Readable name of the enchantment
----@field final_level_range table<number, table<number, number[]>> Level range
+---@field final_level_range table<number, number[]> Level range
 ---@field level_def table<number, number> Level bonus
 ---@field weight number Enchantment weight
 ---@field randomseed number Math random seed. Will change after item was enchanted.
@@ -47,7 +47,7 @@
 
 
 ---@class ToolCapData
----@field enchantments_desc string Masket description before enchating
+---@field enchantments_desc string Masket description before enchanting
 ---@field enchantments_desc_masked string Description added to item description definition after enchanting
 ---@field tool_capabilities ToolCapabilitiesDef Modified tool capabilities with applied enchantment
 
