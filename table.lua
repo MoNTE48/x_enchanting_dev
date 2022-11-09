@@ -1,33 +1,9 @@
 screwdriver = minetest.global_exists('screwdriver') and screwdriver --[[@as MtgScrewdriver]]
 
-local scroll_animations = {
-    scroll_open = { { x = 1, y = 40 }, 80, 0, false },
-    scroll_close = { { x = 45, y = 84 }, 80, 0, false },
-    scroll_open_idle = { { x = 41, y = 42 }, 0, 0, false },
-    scroll_closed_idle = { { x = 43, y = 43 }, 0, 0, false }
-}
+----
+--- Table Node
+----
 
-local function get_formspec(pos)
-    local spos = pos.x .. ',' .. pos.y .. ',' .. pos.z
-    local formspec =
-        'size[8,9]' ..
-        'label[0, 0;Enchant]' ..
-        ---@diagnostic disable-next-line: codestyle-check
-        'model[0,0;2,3;x_enchanting_table;x_enchanting_scroll.b3d;x_enchanting_scroll_mesh.png,x_enchanting_scroll_handles_mesh.png,x_enchanting_scroll_mesh.png;89,0;false;false;' .. scroll_animations.scroll_open_idle[1].x .. ',' .. scroll_animations.scroll_open_idle[1].y .. ';0]' ..
-        'list[nodemeta:' .. spos .. ';item;0, 2.5;1, 1;]' ..
-        'image[1,2.5;1,1;x_enchanting_trade_slot.png;]' ..
-        'list[nodemeta:' .. spos .. ';trade;1, 2.5;1, 1;]' ..
-        'list[current_player;main;0, 4.85;8, 1;]' ..
-        'list[current_player;main;0, 6.08;8, 3;8]' ..
-        'listring[nodemeta:' .. spos .. ';item]' ..
-        'listring[nodemeta:' .. spos .. ';trade]' ..
-        'listring[current_player;main]' ..
-        default.get_hotbar_bg(0, 4.85)
-
-    return formspec
-end
-
----Table Node
 minetest.register_node('x_enchanting:table', {
     description = 'Enchating Table',
     short_description = 'Enchating Table',
@@ -48,15 +24,15 @@ minetest.register_node('x_enchanting:table', {
     },
     sounds = {
         footstep = {
-            name = 'x_enchanting_table_hard_footstep',
+            name = 'x_enchanting_scroll',
             gain = 0.2
         },
         dug = {
-            name = 'x_enchanting_table_hard_footstep',
+            name = 'x_enchanting_scroll',
             gain = 1.0
         },
         place = {
-            name = 'x_enchanting_table_place_node_hard',
+            name = 'x_enchanting_scroll',
             gain = 1.0
         }
     },
@@ -105,15 +81,34 @@ minetest.register_node('x_enchanting:table', {
             return itemstack
         end
 
-        minetest.sound_play('default_dig_choppy', {
+        minetest.sound_play('x_enchanting_scroll', {
             gain = 0.3,
             pos = pos,
             max_hear_distance = 10
         }, true)
 
-        local formspec = get_formspec(pos)
+        -- bookshelfs
+        local bookshelfs = minetest.find_nodes_in_area(
+            { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
+            { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
+            { 'default:bookshelf', 'group:bookshelf' }
+        )
 
-        minetest.show_formspec(clicker:get_player_name(), 'x_enchanting:table', formspec)
+        local inv = minetest.get_meta(pos):get_inventory()
+
+        if not inv:is_empty('item') then
+            local item_stack = inv:get_stack('item', 1)
+            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local formspec = XEnchanting:get_formspec(pos, p_name, data)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        else
+            local formspec = XEnchanting:get_formspec(pos, p_name)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        end
+
+        return itemstack
     end,
     ---@param pos Vector
     ---@param intensity? number
@@ -168,7 +163,7 @@ minetest.register_node('x_enchanting:table', {
         end
 
         local particlespawner_def = {
-            amount = 30,
+            amount = 50,
             time = 5,
             minpos = { x = pos.x - 0.1, y = pos.y + 0.2, z = pos.z - 0.1 },
             maxpos = { x = pos.x + 0.1, y = pos.y + 0.3, z = pos.z + 0.1 },
@@ -187,7 +182,7 @@ minetest.register_node('x_enchanting:table', {
         if minetest.has_feature({ dynamic_add_media_table = true, particlespawner_tweenable = true }) then
             -- new syntax, after v5.6.0
             particlespawner_def = {
-                amount = 30,
+                amount = 50,
                 time = 5,
                 size = {
                     min = 0.1,
@@ -228,9 +223,6 @@ minetest.register_node('x_enchanting:table', {
             return true
         end
 
-        -- just for testing
-        XEnchanting:get_base_enchantment_level(#bookshelfs, minetest.registered_tools['default:pick_mese'])
-
         -- symbol particles
         for i = 1, 10, 1 do
             local pos_random = bookshelfs[math.random(1, #bookshelfs)]
@@ -268,16 +260,184 @@ minetest.register_node('x_enchanting:table', {
             end
         end
     end,
+    ---@param pos Vector
+    ---@param listname string
+    ---@param index number
+    ---@param stack ItemStack
+    ---@param player ObjectRef
+    allow_metadata_inventory_put = function(pos, listname, index, stack, player)
+        local st_meta = stack:get_meta()
+        local st_name = stack:get_name()
+        local is_enchanted = st_meta:get_int('is_enchanted')
 
-    -- on_receive_fields = enchanting.fields,
-    -- on_metadata_inventory_put = enchanting.on_put,
-    -- on_metadata_inventory_take = enchanting.on_take,
-    -- allow_metadata_inventory_put = enchanting.put,
-    -- allow_metadata_inventory_take = enchanting.take,
-    -- allow_metadata_inventory_move = function() return 0 end,
+        if listname == 'item'
+            and minetest.get_item_group(st_name, 'enchantability') > 0
+            and is_enchanted ~= 1
+        then
+            return stack:get_count()
+        elseif listname == 'trade'
+            and (
+                st_name == 'default:mese_crystal'
+                or minetest.get_item_group(st_name, 'enchanting_trade') > 0
+            )
+            and is_enchanted ~= 1
+        then
+            return stack:get_count()
+        end
+
+        return 0
+    end,
+    ---@param pos Vector
+    ---@param listname string
+    ---@param index number
+    ---@param stack ItemStack
+    ---@param player ObjectRef
+    allow_metadata_inventory_take = function(pos, listname, index, stack, player)
+        local st_name = stack:get_name()
+
+        if listname == 'item' then
+            return stack:get_count()
+        elseif listname == 'trade'
+            and (
+                st_name == 'default:mese_crystal'
+                or minetest.get_item_group(st_name, 'enchanting_trade') > 0
+            )
+        then
+            return stack:get_count()
+        end
+
+        return 0
+    end,
+    ---@param pos Vector
+    ---@param from_list string
+    ---@param from_index number
+    ---@param to_list string
+    ---@param to_index number
+    ---@param count number
+    ---@param player ObjectRef
+    allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+        return 0
+    end,
+    ---@param pos Vector
+    ---@param listname string
+    ---@param index number
+    ---@param stack ItemStack
+    ---@param player ObjectRef
+    on_metadata_inventory_put = function(pos, listname, index, stack, player)
+        local p_name = player:get_player_name()
+        local inv = minetest.get_meta(pos):get_inventory()
+
+        if not inv:is_empty('item') then
+            -- bookshelfs
+            local bookshelfs = minetest.find_nodes_in_area(
+                { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
+                { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
+                { 'default:bookshelf' }
+            )
+
+            local item_stack = inv:get_stack('item', 1)
+            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local formspec = XEnchanting:get_formspec(pos, p_name, data)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        else
+            local formspec = XEnchanting:get_formspec(pos, p_name)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        end
+    end,
+    ---@param pos Vector
+    ---@param listname string
+    ---@param index number
+    ---@param stack ItemStack
+    ---@param player ObjectRef
+    on_metadata_inventory_take = function(pos, listname, index, stack, player)
+        local p_name = player:get_player_name()
+        local inv = minetest.get_meta(pos):get_inventory()
+
+        if not inv:is_empty('item') then
+            -- bookshelfs
+            local bookshelfs = minetest.find_nodes_in_area(
+                { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
+                { x = pos.x + 2, y = pos.y + 2, z = pos.z + 2 },
+                { 'default:bookshelf' }
+            )
+
+            local item_stack = inv:get_stack('item', 1)
+            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local formspec = XEnchanting:get_formspec(pos, p_name, data)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        else
+            local formspec = XEnchanting:get_formspec(pos, p_name)
+
+            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+        end
+    end
 })
 
----Scroll Entity
+-- form receive fields
+---@param player ObjectRef
+---@param formname string
+---@param fields table
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+    local p_name = player:get_player_name()
+
+    if formname ~= 'x_enchanting:table' or fields.quit then
+        XEnchanting.form_context[p_name] = nil
+        return
+    end
+
+    local selected_slot
+
+    if fields.slot_1 and fields.slot_1 ~= '' then
+        selected_slot = 1
+    elseif fields.slot_2 and fields.slot_2 ~= '' then
+        selected_slot = 2
+    elseif fields.slot_3 and fields.slot_3 ~= '' then
+        selected_slot = 3
+    end
+
+    if not XEnchanting.form_context[p_name] or not selected_slot then
+        return
+    end
+
+    local pos = XEnchanting.form_context[p_name].pos
+    local inv = minetest.get_meta(pos):get_inventory()
+
+    if inv:is_empty('trade') or inv:is_empty('item') then
+        return
+    end
+
+    local trade_stack = inv:get_stack('trade', 1)
+    local data = XEnchanting.form_context[p_name].data
+
+    if trade_stack:get_count() < selected_slot or not data then
+        return
+    end
+
+    local item_stack = inv:get_stack('item', 1)
+    local is_enchanted = item_stack:get_meta():get_int('is_enchanted')
+
+    if is_enchanted == 1 then
+        return
+    end
+
+    -- Enchant item
+    XEnchanting:set_enchanted_tool(
+        pos,
+        item_stack,
+        data.slots[selected_slot].tool_cap_data.tool_capabilities,
+        data.slots[selected_slot].tool_cap_data.enchantments_desc,
+        selected_slot,
+        p_name
+    )
+end)
+
+----
+--- Entity (Scroll)
+----
+
 minetest.register_entity('x_enchanting:table_scroll', {
     initial_properties = {
         visual = 'mesh',
@@ -374,10 +534,10 @@ minetest.register_entity('x_enchanting:table_scroll', {
             -- scroll open/close animation
             if self._player and self._scroll_closed then
                 self._scroll_closed = false
-                self.object:set_animation(unpack(scroll_animations.scroll_open))
+                self.object:set_animation(unpack(XEnchanting.scroll_animations.scroll_open))
             elseif not self._player and not self._scroll_closed then
                 self._scroll_closed = true
-                self.object:set_animation(unpack(scroll_animations.scroll_close))
+                self.object:set_animation(unpack(XEnchanting.scroll_animations.scroll_close))
             end
         end
 
@@ -404,3 +564,27 @@ minetest.register_entity('x_enchanting:table_scroll', {
         return true
     end
 })
+
+----
+-- Recipe
+---
+
+if minetest.get_modpath('xdecor') then
+    minetest.register_craft({
+        output = 'x_enchanting:table',
+        recipe = {
+            { 'default:book', '', '' },
+            { 'default:diamond', 'default:obsidian', 'default:diamond' },
+            { 'default:obsidian', 'default:obsidian', 'default:obsidian' }
+        }
+    })
+else
+    minetest.register_craft({
+        output = 'x_enchanting:table',
+        recipe = {
+            { '', 'default:book', '' },
+            { 'default:diamond', 'default:obsidian', 'default:diamond' },
+            { 'default:obsidian', 'default:obsidian', 'default:obsidian' }
+        }
+    })
+end

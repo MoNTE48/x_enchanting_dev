@@ -29,6 +29,7 @@
 ---@field on_use fun(itemstack: ItemStack, user: ObjectRef|nil, pointed_thing: PointedThingDef): ItemStack|nil default: nil. When user pressed the 'punch/mine' key with the item in hand. Function must return either nil if inventory shall not be modified, or an itemstack to replace the original itemstack. e.g. itemstack:take_item(); return itemstack. Otherwise, the function is free to do what it wants. The user may be any ObjectRef or nil. The default functions handle regular use cases.
 ---@field after_use fun(itemstack: ItemStack, user: ObjectRef|nil, node: NodeDef, digparams: DigParamsDef): ItemStack|nil default: nil. If defined, should return an itemstack and will be called instead of wearing out the item (if tool). If returns nil, does nothing.
 ---@field soil table Only for farming
+---@field name string
 
 ---Tool capabilities definition
 ---@class ToolCapabilitiesDef

@@ -1,0 +1,18 @@
+{
+    "type": "MOD",
+    "title": "X Enchanting",
+    "name": "x_enchanting",
+    "short_description": "Adds Enchanting Mechanics and API.",
+    "dev_state": "MAINTENANCE_ONLY",
+    "tags": [
+        "pvp",
+        "shooter",
+        "survival",
+        "tools",
+        "magic"
+    ],
+    "license": "LGPL-2.1-or-later",
+    "media_license": "CC-BY-SA-4.0",
+    "repo": "https://bitbucket.org/minetest_gamers/x_enchanting/src/master/",
+    "issue_tracker": "https://bitbucket.org/minetest_gamers/x_enchanting/issues?status=new&status=open"
+}
