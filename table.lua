@@ -473,11 +473,8 @@ minetest.register_entity('x_enchanting:table_scroll', {
         self._scroll_closed = true
         self._tablechecktimer = 5
         self._playerchecktimer = 1
-        self._bouncetimer = 3
         self._player = nil
         self._last_rotation = nil
-        self._bounce_up = false
-        self._bounce_init = false
 
         self.object:set_armor_groups({ immortal = 1 })
         self.object:set_animation({ x = 0, y = 0 }, 0, 0, false)
@@ -491,7 +488,6 @@ minetest.register_entity('x_enchanting:table_scroll', {
         self._last_rotation = self.object:get_rotation()
         self._tablechecktimer = self._tablechecktimer - dtime
         self._playerchecktimer = self._playerchecktimer - dtime
-        self._bouncetimer = self._bouncetimer - dtime
 
         -- table
         if self._tablechecktimer <= 0 then
