@@ -32,14 +32,7 @@ XEnchanting = {
         ['default:sword_bronze'] = 22,
         ['default:sword_steel'] = 14,
         ['default:sword_mese'] = 15,
-        ['default:sword_diamond'] = 10,
-        -- hoes
-        ['farming:hoe_wood'] = 15,
-        ['farming:hoe_stone'] = 5,
-        ['farming:hoe_steel'] = 14,
-        ['farming:hoe_bronze'] = 22,
-        ['farming:hoe_mese'] = 15,
-        ['farming:hoe_diamond'] = 10,
+        ['default:sword_diamond'] = 10
     },
     roman_numbers = {
         [1] = 'I',
@@ -343,14 +336,14 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
     }
 end
 
-function XEnchanting.set_enchanted_tool(self, itemstack, level, player_name)
+function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name)
     local data = self.form_context[player_name].data
-    local pos = self.form_context[player_name].pos
     local capabilities = data.slots[level].tool_cap_data.tool_capabilities
     local description = data.slots[level].tool_cap_data.enchantments_desc
     local final_enchantments = data.slots[level].final_enchantments
     local inv = minetest.get_meta(pos):get_inventory()
     local tool_def = minetest.registered_tools[itemstack:get_name()]
+    local node_meta = minetest.get_meta(pos)
 
     if not tool_def then
         return
@@ -374,7 +367,7 @@ function XEnchanting.set_enchanted_tool(self, itemstack, level, player_name)
     self.randomseed = tonumber(tostring(os.time()):reverse():sub(1, 9)) --[[@as number]]
 
     local formspec = self:get_formspec(pos, player_name)
-    minetest.show_formspec(player_name, 'x_enchanting:table', formspec)
+    node_meta:set_string('formspec', formspec)
 
     minetest.sound_play('x_enchanting_enchant', {
         gain = 0.3,

@@ -8,7 +8,7 @@
 ---@field has_tool_group fun(self: XEnchanting, name: string): string | boolean Check if tool has one of the known tool groups, returns `false` otherwise.
 ---@field set_tool_enchantability fun(self: XEnchanting, tool_def: ItemDef): nil Sets `enchantibility` group and values from base table (`XEnchanting.tools_enchantability`) to all registered tools (atching known group names). If tool has already `enchantibility` group defined it will take the defined value insted.
 ---@field get_enchanted_tool_capabilities fun(self: XEnchanting, tool_def: ItemDef, enchantments: Enchantments[]): GetEnchantedToolCapabilitiesReturn Applies enchantments to item tool capabilities.
----@field set_enchanted_tool fun(self: XEnchanting, itemstack: ItemStack, level: number, player_name: string): nil Set choosen enchantment and its modified tool capabilities to itemstack and `item` inventory. This will also get new `randomseed`.
+---@field set_enchanted_tool fun(self: XEnchanting, pos: Vector, itemstack: ItemStack, level: number, player_name: string): nil Set choosen enchantment and its modified tool capabilities to itemstack and `item` inventory. This will also get new `randomseed`.
 ---@field get_enchantment_data fun(self: XEnchanting, nr_of_bookshelfs: number, tool_def: ItemDef): EnchantmentData Algoritm to get aplicable random enchantments.
 ---@field get_formspec fun(self: XEnchanting, pos: Vector, player_name: string, data?: EnchantmentData): string Builds and returns `formspec` string
 

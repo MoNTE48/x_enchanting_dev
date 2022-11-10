@@ -70,6 +70,9 @@ minetest.register_node('x_enchanting:table', {
 
         meta:set_string('owner', player_name)
         meta:set_string('infotext', S('Enchanting Table') .. ' (' .. S('owned by') .. ' ' .. player_name .. ')')
+
+        local formspec = XEnchanting:get_formspec(pos, player_name)
+        meta:set_string('formspec', formspec)
     end,
     ---@param pos Vector
     ---@param node NodeDef
@@ -77,6 +80,7 @@ minetest.register_node('x_enchanting:table', {
     ---@param itemstack ItemStack
     ---@param pointed_thing? PointedThingDef
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+        local meta = minetest.get_meta(pos)
         local p_name = clicker:get_player_name()
 
         if minetest.is_protected(pos, p_name) then
@@ -103,11 +107,11 @@ minetest.register_node('x_enchanting:table', {
             local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         else
             local formspec = XEnchanting:get_formspec(pos, p_name)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         end
 
         return itemstack
@@ -326,8 +330,9 @@ minetest.register_node('x_enchanting:table', {
     ---@param stack ItemStack
     ---@param player ObjectRef
     on_metadata_inventory_put = function(pos, listname, index, stack, player)
+        local meta = minetest.get_meta(pos)
         local p_name = player:get_player_name()
-        local inv = minetest.get_meta(pos):get_inventory()
+        local inv = meta:get_inventory()
 
         if not inv:is_empty('item') then
             -- bookshelfs
@@ -341,11 +346,11 @@ minetest.register_node('x_enchanting:table', {
             local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         else
             local formspec = XEnchanting:get_formspec(pos, p_name)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         end
     end,
     ---@param pos Vector
@@ -354,8 +359,9 @@ minetest.register_node('x_enchanting:table', {
     ---@param stack ItemStack
     ---@param player ObjectRef
     on_metadata_inventory_take = function(pos, listname, index, stack, player)
+        local meta = minetest.get_meta(pos)
         local p_name = player:get_player_name()
-        local inv = minetest.get_meta(pos):get_inventory()
+        local inv = meta:get_inventory()
 
         if not inv:is_empty('item') then
             -- bookshelfs
@@ -369,69 +375,69 @@ minetest.register_node('x_enchanting:table', {
             local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         else
             local formspec = XEnchanting:get_formspec(pos, p_name)
 
-            minetest.show_formspec(p_name, 'x_enchanting:table', formspec)
+            meta:set_string('formspec', formspec)
         end
+    end,
+    -- form receive fields
+    ---@param pos Vector
+    ---@param formname string
+    ---@param fields table
+    ---@param sender ObjectRef
+    on_receive_fields = function(pos, formname, fields, sender)
+        local p_name = sender:get_player_name()
+
+        if fields.quit then
+            XEnchanting.form_context[p_name] = nil
+            return
+        end
+
+        local selected_slot
+
+        if fields.slot_1 and fields.slot_1 ~= '' then
+            selected_slot = 1
+        elseif fields.slot_2 and fields.slot_2 ~= '' then
+            selected_slot = 2
+        elseif fields.slot_3 and fields.slot_3 ~= '' then
+            selected_slot = 3
+        end
+
+        if not XEnchanting.form_context[p_name] or not selected_slot then
+            return
+        end
+
+        local inv = minetest.get_meta(pos):get_inventory()
+
+        if inv:is_empty('trade') or inv:is_empty('item') then
+            return
+        end
+
+        local trade_stack = inv:get_stack('trade', 1)
+        local data = XEnchanting.form_context[p_name].data
+
+        if trade_stack:get_count() < selected_slot or not data then
+            return
+        end
+
+        local item_stack = inv:get_stack('item', 1)
+        local is_enchanted = item_stack:get_meta():get_int('is_enchanted')
+
+        if is_enchanted == 1 then
+            return
+        end
+
+        -- Enchant item
+        XEnchanting:set_enchanted_tool(
+            pos,
+            item_stack,
+            selected_slot,
+            p_name
+        )
     end
 })
-
--- form receive fields
----@param player ObjectRef
----@param formname string
----@param fields table
-minetest.register_on_player_receive_fields(function(player, formname, fields)
-    local p_name = player:get_player_name()
-
-    if formname ~= 'x_enchanting:table' or fields.quit then
-        XEnchanting.form_context[p_name] = nil
-        return
-    end
-
-    local selected_slot
-
-    if fields.slot_1 and fields.slot_1 ~= '' then
-        selected_slot = 1
-    elseif fields.slot_2 and fields.slot_2 ~= '' then
-        selected_slot = 2
-    elseif fields.slot_3 and fields.slot_3 ~= '' then
-        selected_slot = 3
-    end
-
-    if not XEnchanting.form_context[p_name] or not selected_slot then
-        return
-    end
-
-    local pos = XEnchanting.form_context[p_name].pos
-    local inv = minetest.get_meta(pos):get_inventory()
-
-    if inv:is_empty('trade') or inv:is_empty('item') then
-        return
-    end
-
-    local trade_stack = inv:get_stack('trade', 1)
-    local data = XEnchanting.form_context[p_name].data
-
-    if trade_stack:get_count() < selected_slot or not data then
-        return
-    end
-
-    local item_stack = inv:get_stack('item', 1)
-    local is_enchanted = item_stack:get_meta():get_int('is_enchanted')
-
-    if is_enchanted == 1 then
-        return
-    end
-
-    -- Enchant item
-    XEnchanting:set_enchanted_tool(
-        item_stack,
-        selected_slot,
-        p_name
-    )
-end)
 
 ----
 --- Entity (Scroll)
@@ -530,9 +536,21 @@ minetest.register_entity('x_enchanting:table_scroll', {
             if self._player and self._scroll_closed then
                 self._scroll_closed = false
                 self.object:set_animation(unpack(XEnchanting.scroll_animations.scroll_open))
+
+                minetest.sound_play('x_enchanting_scroll', {
+                    gain = 0.3,
+                    pos = pos,
+                    max_hear_distance = 10
+                }, true)
             elseif not self._player and not self._scroll_closed then
                 self._scroll_closed = true
                 self.object:set_animation(unpack(XEnchanting.scroll_animations.scroll_close))
+
+                minetest.sound_play('x_enchanting_scroll', {
+                    gain = 0.3,
+                    pos = pos,
+                    max_hear_distance = 10
+                }, true)
             end
         end
 
