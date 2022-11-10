@@ -28,9 +28,9 @@ For maximum level of enchantments you need maximum of 15 bookshelfs around the e
 
 To be able to enchant items you need a trade item (by default `default:mese_crystal` or anything with `groups = {enchanting_trade = 1}`). Higher level enchantments costs more: level 1,2,3 costs mese crystals 1,2,3.
 When place item in the enchantment table item slot you can see three buttons with:
-    - left side the trade cost amount
-    - middle the enchantment you will get + maybe more enchantments
-    - right side the base level for the enchantment (depends on how many bookshelfs are in reach)
+- left side the trade cost amount
+- middle the enchantment you will get + maybe more enchantments
+- right side the base level for the enchantment (depends on how many bookshelfs are in reach)
 When you place item in the enchantment table trade slot you will see that some buttons are now enabled and can be clicked on - depends on trade amount available.
 The enchantments shown in the enchantment table will be always the same for item - this will change after you enchant an item. After enchanting an item a new enchantments will be shown.
 
@@ -38,11 +38,11 @@ The enchantments shown in the enchantment table will be always the same for item
 
 All default tools have enchantability set. Higher enchantability = higher chance of getting better enchantments.
 Items enchantibility from worst to best:
-    - stone
-    - diamond
-    - steel
-    - wood / mese
-    - bronze
+- stone
+- diamond
+- steel
+- wood / mese
+- bronze
 
 ### Every Enchantment Explained
 
@@ -131,24 +131,24 @@ GNU Lesser General Public License v2.1 or later (see included LICENSE file)
 
 **Mixkit Sound Effects Free License**, Sound effects obtained from https://mixkit.co
 
-x_enchanting_enchant.ogg
+- x_enchanting_enchant.ogg
 
 **Standard License**, Sound effects obtained from https://mixkit.co
 
-x_enchanting_scroll.1.ogg
-x_enchanting_scroll.2.ogg
-x_enchanting_scroll.3.ogg
-x_enchanting_scroll.4.ogg
-x_enchanting_scroll.5.ogg
-x_enchanting_scroll.6.ogg
-x_enchanting_scroll.7.ogg
-x_enchanting_scroll.8.ogg
-x_enchanting_scroll.9.ogg
-x_enchanting_scroll.10.ogg
-x_enchanting_scroll.11.ogg
-x_enchanting_scroll.12.ogg
-x_enchanting_scroll.13.ogg
-x_enchanting_scroll.14.ogg
+- x_enchanting_scroll.1.ogg
+- x_enchanting_scroll.2.ogg
+- x_enchanting_scroll.3.ogg
+- x_enchanting_scroll.4.ogg
+- x_enchanting_scroll.5.ogg
+- x_enchanting_scroll.6.ogg
+- x_enchanting_scroll.7.ogg
+- x_enchanting_scroll.8.ogg
+- x_enchanting_scroll.9.ogg
+- x_enchanting_scroll.10.ogg
+- x_enchanting_scroll.11.ogg
+- x_enchanting_scroll.12.ogg
+- x_enchanting_scroll.13.ogg
+- x_enchanting_scroll.14.ogg
 
 ## Installation
 
