@@ -133,11 +133,11 @@ GNU Lesser General Public License v2.1 or later (see included LICENSE file)
 
 ### Sounds
 
-**Creative Commons License, Kostas17**, https://freesound.org
+**CC-BY-3.0, Kostas17**, https://freesound.org
 
 - x_enchanting_enchant.ogg
 
-**Creative Commons License, jammaj**, https://freesound.org
+**CC0-1.0, Zeinel**, https://freesound.org
 
 - x_enchanting_scroll.1.ogg
 - x_enchanting_scroll.2.ogg
