@@ -62,6 +62,10 @@ Increases the item's durability.
 
 Increases the player's mining speed. Also adds mining groupcaps to item, e.g. enchanted wood pickaxe can mine level 1 nodes (e.g. obsidian) after enchantment.
 
+#### Silk Touch
+
+Causes certain blocks to drop themselves as items instead of their usual drops when mined. Mods can prevent this behaviour with adding group `{ no_silktouch = 1 }` to the nodes.
+
 ## Dependencies
 
 - none
@@ -129,11 +133,11 @@ GNU Lesser General Public License v2.1 or later (see included LICENSE file)
 
 ### Sounds
 
-**Mixkit Sound Effects Free License**, Sound effects obtained from https://mixkit.co
+**Creative Commons License, Kostas17**, https://freesound.org
 
 - x_enchanting_enchant.ogg
 
-**Standard License**, Sound effects obtained from https://mixkit.co
+**Creative Commons License, jammaj**, https://freesound.org
 
 - x_enchanting_scroll.1.ogg
 - x_enchanting_scroll.2.ogg
@@ -144,11 +148,6 @@ GNU Lesser General Public License v2.1 or later (see included LICENSE file)
 - x_enchanting_scroll.7.ogg
 - x_enchanting_scroll.8.ogg
 - x_enchanting_scroll.9.ogg
-- x_enchanting_scroll.10.ogg
-- x_enchanting_scroll.11.ogg
-- x_enchanting_scroll.12.ogg
-- x_enchanting_scroll.13.ogg
-- x_enchanting_scroll.14.ogg
 
 ## Installation
 

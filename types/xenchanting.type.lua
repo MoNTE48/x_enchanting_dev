@@ -4,7 +4,7 @@
 ---@class XEnchanting
 ---@field tools_enchantability table<string, number>  Add enchantability to default tools. key/value = tool_name/enchantibility value
 ---@field roman_numbers table<number, string>  Convert Arabic numbers to Roman numbers
----@field enchantment_defs table<'sharpness' | 'fortune' | 'unbreaking' | 'efficiency', EnchantmentDef>
+---@field enchantment_defs table<'sharpness' | 'fortune' | 'unbreaking' | 'efficiency' | 'silk_touch', EnchantmentDef>
 ---@field has_tool_group fun(self: XEnchanting, name: string): string | boolean Check if tool has one of the known tool groups, returns `false` otherwise.
 ---@field set_tool_enchantability fun(self: XEnchanting, tool_def: ItemDef): nil Sets `enchantibility` group and values from base table (`XEnchanting.tools_enchantability`) to all registered tools (atching known group names). If tool has already `enchantibility` group defined it will take the defined value insted.
 ---@field get_enchanted_tool_capabilities fun(self: XEnchanting, tool_def: ItemDef, enchantments: Enchantments[]): GetEnchantedToolCapabilitiesReturn Applies enchantments to item tool capabilities.

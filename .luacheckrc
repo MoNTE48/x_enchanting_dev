@@ -16,13 +16,14 @@ exclude_files = {
 }
 
 globals = {
+    'minetest',
     'XEnchanting'
 }
 
 read_globals = {
     "DIR_DELIM", "INIT",
 
-    "minetest", "core",
+    "core",
     "dump", "dump2",
 
     "Raycast",

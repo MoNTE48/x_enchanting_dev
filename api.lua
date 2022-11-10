@@ -115,6 +115,16 @@ XEnchanting = {
                 [5] = 45,
             },
             weight = 10
+        },
+        silk_touch = {
+            name = S('Silk Touch'),
+            final_level_range = {
+                [1] = { 15, 65 }
+            },
+            level_def = {
+                [1] = 'silk_touch'
+            },
+            weight = 1
         }
     },
     randomseed = os.time(),
@@ -323,6 +333,15 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
                     .. self.roman_numbers[enchantment.level]
             end
         end
+
+        -- Silk Touch
+        if enchantment.id == 'silk_touch' then
+            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
+
+            if #enchantments_desc_masked == 0 then
+                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
+            end
+        end
     end
 
     enchantments_desc = '\n' .. minetest.colorize('#AE81FF', S('Enchanted'))
@@ -350,12 +369,24 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     end
 
     local stack_meta = itemstack:get_meta()
+    local is_silk_touch = 0
+
+    for i, val in ipairs(final_enchantments) do
+        if val.id == 'silk_touch' then
+            is_silk_touch = 1
+            break
+        end
+    end
 
     stack_meta:set_tool_capabilities(capabilities)
     stack_meta:set_string('description', itemstack:get_description() .. '\n' .. description)
     stack_meta:set_string('short_description', S('Enchanted') .. ' ' .. itemstack:get_short_description())
     stack_meta:set_int('is_enchanted', 1)
     stack_meta:set_string('x_enchanting', minetest.serialize({ enchantments = final_enchantments }))
+
+    if is_silk_touch > 0 then
+        stack_meta:set_int('is_silk_touch', 1)
+    end
 
     inv:set_stack('item', 1, itemstack)
 
