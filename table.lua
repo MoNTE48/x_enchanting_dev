@@ -427,10 +427,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 
     -- Enchant item
     XEnchanting:set_enchanted_tool(
-        pos,
         item_stack,
-        data.slots[selected_slot].tool_cap_data.tool_capabilities,
-        data.slots[selected_slot].tool_cap_data.enchantments_desc,
         selected_slot,
         p_name
     )

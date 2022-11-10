@@ -343,7 +343,12 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
     }
 end
 
-function XEnchanting.set_enchanted_tool(self, pos, itemstack, capabilities, description, level, player_name)
+function XEnchanting.set_enchanted_tool(self, itemstack, level, player_name)
+    local data = self.form_context[player_name].data
+    local pos = self.form_context[player_name].pos
+    local capabilities = data.slots[level].tool_cap_data.tool_capabilities
+    local description = data.slots[level].tool_cap_data.enchantments_desc
+    local final_enchantments = data.slots[level].final_enchantments
     local inv = minetest.get_meta(pos):get_inventory()
     local tool_def = minetest.registered_tools[itemstack:get_name()]
 
@@ -357,6 +362,7 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, capabilities, desc
     stack_meta:set_string('description', itemstack:get_description() .. '\n' .. description)
     stack_meta:set_string('short_description', S('Enchanted') .. ' ' .. itemstack:get_short_description())
     stack_meta:set_int('is_enchanted', 1)
+    stack_meta:set_string('x_enchanting', minetest.serialize({ enchantments = final_enchantments }))
 
     inv:set_stack('item', 1, itemstack)
 
