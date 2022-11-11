@@ -64,6 +64,35 @@ function minetest.handle_node_drops(pos, drops, digger)
     return old_handle_node_drops(pos, { ItemStack(node.name) }, digger)
 end
 
+minetest.register_on_player_hpchange(function(player, hp_change, reason)
+    if (player:get_hp() + hp_change) <= 0 then
+        -- Going to die
+        local player_inv = player:get_inventory() --[[@as InvRef]]
+
+        -- Curse of Vanishing
+        local player_inventory_lists = { 'main', 'craft' }
+
+        for _, list_name in ipairs(player_inventory_lists) do
+            if not player_inv:is_empty(list_name) then
+                for i = 1, player_inv:get_size(list_name) do
+                    local stack = player_inv:get_stack(list_name, i)
+                    local stack_meta = stack:get_meta()
+                    local is_curse_of_vanishing = stack_meta:get_int('is_curse_of_vanishing')
+
+
+                    if is_curse_of_vanishing > 0 then
+                        player_inv:set_stack(list_name, i, ItemStack(''))
+                    end
+                end
+
+                player_inv:set_list(list_name, {})
+            end
+        end
+    end
+
+    return hp_change
+end, true)
+
 local mod_end_time = (minetest.get_us_time() - mod_start_time) / 1000000
 
 print('[Mod] x_enchanting loaded.. [' .. mod_end_time .. 's]')

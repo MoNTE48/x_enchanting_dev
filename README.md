@@ -66,6 +66,10 @@ Increases the player's mining speed. Also adds mining groupcaps to item, e.g. en
 
 Causes certain blocks to drop themselves as items instead of their usual drops when mined. Mods can prevent this behaviour with adding group `{ no_silktouch = 1 }` to the nodes.
 
+#### Curse of Vanishing
+
+Causes the item to disappear on death.
+
 ## Dependencies
 
 - none

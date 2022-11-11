@@ -125,6 +125,16 @@ XEnchanting = {
                 [1] = 'silk_touch'
             },
             weight = 1
+        },
+        curse_of_vanishing = {
+            name = S('Curse of Vanishing'),
+            final_level_range = {
+                [1] = { 25, 50 }
+            },
+            level_def = {
+                [1] = 'curse_of_vanishing'
+            },
+            weight = 1
         }
     },
     randomseed = os.time(),
@@ -342,6 +352,15 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
                 enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
             end
         end
+
+        -- Curse of Vanishing
+        if enchantment.id == 'curse_of_vanishing' then
+            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
+
+            if #enchantments_desc_masked == 0 then
+                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
+            end
+        end
     end
 
     enchantments_desc = '\n' .. minetest.colorize('#AE81FF', S('Enchanted'))
@@ -369,13 +388,9 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     end
 
     local stack_meta = itemstack:get_meta()
-    local is_silk_touch = 0
 
     for i, val in ipairs(final_enchantments) do
-        if val.id == 'silk_touch' then
-            is_silk_touch = 1
-            break
-        end
+        stack_meta:set_int('is_' .. val.id, 1)
     end
 
     stack_meta:set_tool_capabilities(capabilities)
@@ -383,10 +398,6 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     stack_meta:set_string('short_description', S('Enchanted') .. ' ' .. itemstack:get_short_description())
     stack_meta:set_int('is_enchanted', 1)
     stack_meta:set_string('x_enchanting', minetest.serialize({ enchantments = final_enchantments }))
-
-    if is_silk_touch > 0 then
-        stack_meta:set_int('is_silk_touch', 1)
-    end
 
     inv:set_stack('item', 1, itemstack)
 
