@@ -122,9 +122,10 @@ XEnchanting = {
                 [1] = { 15, 65 }
             },
             level_def = {
-                [1] = 'silk_touch'
+                [1] = 1
             },
-            weight = 1
+            weight = 1,
+            secondary = true
         },
         curse_of_vanishing = {
             name = S('Curse of Vanishing'),
@@ -132,13 +133,27 @@ XEnchanting = {
                 [1] = { 25, 50 }
             },
             level_def = {
-                [1] = 'curse_of_vanishing'
+                [1] = 1
             },
-            weight = 1
-        }
+            weight = 1,
+            secondary = true
+        },
+        knockback = {
+            name = S('Knockback'),
+            final_level_range = {
+                [1] = { 5, 55 },
+                [2] = { 25, 75 }
+            },
+            -- increase %
+            level_def = {
+                [1] = 105,
+                [2] = 190
+            },
+            weight = 5
+        },
     },
-    randomseed = os.time(),
     form_context = {},
+    player_seeds = {},
     scroll_animations = {
         scroll_open = { { x = 1, y = 40 }, 80, 0, false },
         scroll_close = { { x = 45, y = 84 }, 80, 0, false },
@@ -154,6 +169,18 @@ XEnchanting = {
 local function mergeTables(t1, t2)
     for k, v in pairs(t2) do t1[k] = v end
     return t1
+end
+
+---Gets length of hashed table
+---@param table any
+---@return integer
+local function get_table_length(table)
+    local length = 0
+    for _ in pairs(table) do
+        length = length + 1
+    end
+
+    return length
 end
 
 function XEnchanting.has_tool_group(self, name)
@@ -187,8 +214,6 @@ end
 function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantments)
     local tool_stack = ItemStack({ name = tool_def.name })
     local tool_capabilities = tool_stack:get_tool_capabilities()
-    local enchantments_desc = {}
-    local enchantments_desc_masked = {}
 
     for i, enchantment in ipairs(enchantments) do
         -- Efficiency
@@ -256,18 +281,6 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
 
                 tool_capabilities.full_punch_interval = new_fpi
             end
-
-            if tool_capabilities.groupcaps or tool_capabilities.full_punch_interval then
-                enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
-                    .. ' '
-                    .. self.roman_numbers[enchantment.level]
-
-                if #enchantments_desc_masked == 0 then
-                    enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
-                        .. ' '
-                        .. self.roman_numbers[enchantment.level]
-                end
-            end
         end
 
         -- Unbreaking
@@ -292,18 +305,6 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
 
                 tool_capabilities.punch_attack_uses = new_uses
             end
-
-            if tool_capabilities.groupcaps or tool_capabilities.punch_attack_uses then
-                enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
-                    .. ' '
-                    .. self.roman_numbers[enchantment.level]
-
-                if #enchantments_desc_masked == 0 then
-                    enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
-                        .. ' '
-                        .. self.roman_numbers[enchantment.level]
-                end
-            end
         end
 
         -- Sharpness
@@ -314,16 +315,6 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
 
                 tool_capabilities.damage_groups[group_name] = new_damage
             end
-
-            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
-                .. ' '
-                .. self.roman_numbers[enchantment.level]
-
-            if #enchantments_desc_masked == 0 then
-                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
-                    .. ' '
-                    .. self.roman_numbers[enchantment.level]
-            end
         end
 
         -- Fortune
@@ -332,33 +323,40 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
             local new_max_drop_level = old_max_drop_level + enchantment.value
 
             tool_capabilities.max_drop_level = new_max_drop_level
+        end
+    end
 
+    return tool_capabilities
+end
+
+function XEnchanting.get_randomseed(self)
+    return tonumber(tostring(os.time()):reverse():sub(1, 9)) --[[@as integer]]
+end
+
+function XEnchanting.get_enchanted_descriptions(self, enchantments)
+    local enchantments_desc = {}
+    local enchantments_desc_masked = {}
+
+    for i, enchantment in ipairs(enchantments) do
+        local add_roman_numbers = true
+
+        if get_table_length(self.enchantment_defs[enchantment.id].final_level_range) == 1 then
+            add_roman_numbers = false
+        end
+
+        if add_roman_numbers then
             enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
                 .. ' '
                 .. self.roman_numbers[enchantment.level]
-
-            if #enchantments_desc_masked == 0 then
-                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
-                    .. ' '
-                    .. self.roman_numbers[enchantment.level]
-            end
+        else
+            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
         end
 
-        -- Silk Touch
-        if enchantment.id == 'silk_touch' then
-            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
+        if #enchantments_desc_masked == 0 and not enchantment.secondary then
+            enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
 
-            if #enchantments_desc_masked == 0 then
-                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
-            end
-        end
-
-        -- Curse of Vanishing
-        if enchantment.id == 'curse_of_vanishing' then
-            enchantments_desc[#enchantments_desc + 1] = self.enchantment_defs[enchantment.id].name
-
-            if #enchantments_desc_masked == 0 then
-                enchantments_desc_masked[#enchantments_desc_masked + 1] = self.enchantment_defs[enchantment.id].name
+            if add_roman_numbers then
+                enchantments_desc_masked[#enchantments_desc_masked + 1] = ' ' .. self.roman_numbers[enchantment.level]
             end
         end
     end
@@ -368,7 +366,6 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
     enchantments_desc_masked = table.concat(enchantments_desc_masked, '') .. '...?'
 
     return {
-        tool_capabilities = tool_capabilities,
         enchantments_desc = enchantments_desc,
         enchantments_desc_masked = enchantments_desc_masked
     }
@@ -376,8 +373,13 @@ end
 
 function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name)
     local data = self.form_context[player_name].data
-    local capabilities = data.slots[level].tool_cap_data.tool_capabilities
-    local description = data.slots[level].tool_cap_data.enchantments_desc
+
+    if not data then
+        return
+    end
+
+    local capabilities = data.slots[level].tool_cap_data
+    local description = data.slots[level].descriptions.enchantments_desc
     local final_enchantments = data.slots[level].final_enchantments
     local inv = minetest.get_meta(pos):get_inventory()
     local tool_def = minetest.registered_tools[itemstack:get_name()]
@@ -389,8 +391,8 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
 
     local stack_meta = itemstack:get_meta()
 
-    for i, val in ipairs(final_enchantments) do
-        stack_meta:set_int('is_' .. val.id, 1)
+    for i, enchantment in ipairs(final_enchantments) do
+        stack_meta:set_float('is_' .. enchantment.id, enchantment.value)
     end
 
     stack_meta:set_tool_capabilities(capabilities)
@@ -406,7 +408,7 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     inv:set_stack('trade', 1, trade_stack)
 
     -- set new seed
-    self.randomseed = tonumber(tostring(os.time()):reverse():sub(1, 9)) --[[@as number]]
+    self.player_seeds[player_name] = self:get_randomseed()
 
     local formspec = self:get_formspec(pos, player_name)
     node_meta:set_string('formspec', formspec)
@@ -418,7 +420,10 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     }, true)
 end
 
-function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
+function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_def)
+    local p_name = player:get_player_name()
+    local randomseed = self.player_seeds[p_name] or self:get_randomseed()
+    math.randomseed(randomseed)
     local _nr_of_bookshelfs = nr_of_bookshelfs
     local data = {
         slots = {}
@@ -433,7 +438,6 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
     ----
 
     -- Base enchantment
-    math.randomseed(self.randomseed)
     local base = math.random(1, 8) + math.floor(_nr_of_bookshelfs / 2) + math.random(0, _nr_of_bookshelfs)
     local top_slot_base_level = math.floor(math.max(base / 3, 1))
     local middle_slot_base_level = math.floor((base * 2) / 3 + 1)
@@ -448,12 +452,10 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         -- Applying modifiers to the enchantment level
         local enchantability = minetest.get_item_group(tool_def.name, 'enchantability')
         -- Generate a random number between 1 and 1+(enchantability/2), with a triangular distribution
-        math.randomseed(self.randomseed)
         local rand_enchantability = 1 + math.random(enchantability / 4 + 1) + math.random(enchantability / 4 + 1)
         -- Choose the enchantment level
         local k = chosen_enchantment_level + rand_enchantability
         -- A random bonus, between .85 and 1.15
-        math.randomseed(self.randomseed)
         local rand_bonus_percent = 1 + ((math.random(0, 99) / 100) + (math.random(0, 99) / 100) - 1) * 0.15
         -- Finally, we calculate the level
         local final_level = math.round(k * rand_bonus_percent)
@@ -466,6 +468,7 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         -- 2 Find possible enchantments
         ----
 
+        ---@type Enchantment[]
         local possible_enchantments = {}
 
         -- Get level
@@ -474,6 +477,7 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         for enchantment_name, enchantment_def in pairs(self.enchantment_defs) do
             local levels = {}
 
+            -- find matching levels
             for level, final_level_range in ipairs(enchantment_def.final_level_range) do
                 local min = final_level_range[1]
                 local max = final_level_range[2]
@@ -483,13 +487,15 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
                 end
             end
 
+            -- pick the highest level
             local level = levels[#levels]
 
             if level then
                 table.insert(possible_enchantments, {
                     id = enchantment_name,
                     value = enchantment_def.level_def[level],
-                    level = level
+                    level = level,
+                    secondary = enchantment_def.secondary
                 })
             end
         end
@@ -498,6 +504,7 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         -- 3 Select a set of enchantments from the list
         ----
 
+        ---@type Enchantment[]
         local final_enchantments = {}
         local total_weight = 0
 
@@ -506,18 +513,58 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
             total_weight = total_weight + self.enchantment_defs[enchantment.id].weight
         end
 
-        math.randomseed(self.randomseed)
+        -- Pick a random integer in the half range [0; total_weight] as a number `rand_weight`
         local rand_weight = math.random(0, total_weight / 2)
+        -- local probability = (final_level + 1) / 50
+        local probability_level = final_level
+        local possible_enchantments_excl_secodnary = {}
 
-        -- select final enchantments
+        for _, enchantment in pairs(possible_enchantments) do
+            if not enchantment.secondary then
+                table.insert(possible_enchantments_excl_secodnary, enchantment)
+            end
+        end
+
+        -- Select final enchantments
+        -- Iterate through each enchantment in the list, subtracting its weight from `rand_weight`.
+        -- If `rand_weight` is now negative, select the current enchantment.
         for j = 1, #possible_enchantments, 1 do
-            math.randomseed(self.randomseed)
             local rand_ench_idx = math.random(1, #possible_enchantments)
             local rand_ench = possible_enchantments[rand_ench_idx]
 
-            table.remove(possible_enchantments, rand_ench_idx)
+            if j == 1 then
+                -- Dont add cursed/secondary enchantment as first pick
+                rand_ench_idx = math.random(1, #possible_enchantments_excl_secodnary)
+                rand_ench = possible_enchantments_excl_secodnary[rand_ench_idx]
+
+                for idx, value in pairs(possible_enchantments) do
+                    if rand_ench.id == value.id then
+                        table.remove(possible_enchantments, idx)
+                    end
+                end
+
+                table.insert(final_enchantments, rand_ench)
+            else
+                local probability = (probability_level + 1) / 50
+
+                table.remove(possible_enchantments, rand_ench_idx)
+                table.insert(final_enchantments, rand_ench)
+
+                -- With probability (`final_level` + 1) / 50, keep going. Otherwise, stop picking bonus enchantments.
+                local rand_probability = math.random()
+
+                if rand_probability < probability then
+                    -- Divide the `final_level` in half, rounded down
+                    -- (this does not affect the possible enchantments themselves,
+                    -- because they were all pre-calculated in Step Two).
+                    break
+                end
+
+                -- Repeat from the beginning.
+                probability_level = probability_level / 2
+            end
+
             rand_weight = rand_weight - self.enchantment_defs[rand_ench.id].weight
-            table.insert(final_enchantments, rand_ench)
 
             -- If `rand_weight` is now negative, select the current enchantment and stop.
             if rand_weight < 0 then
@@ -526,11 +573,13 @@ function XEnchanting.get_enchantment_data(self, nr_of_bookshelfs, tool_def)
         end
 
         local tool_cap_data = self:get_enchanted_tool_capabilities(tool_def, final_enchantments)
+        local descriptions = self:get_enchanted_descriptions(final_enchantments)
 
         table.insert(data.slots, i, {
             level = slot_lvl,
             final_enchantments = final_enchantments,
-            tool_cap_data = tool_cap_data
+            tool_cap_data = tool_cap_data,
+            descriptions = descriptions
         })
     end
 
@@ -572,10 +621,10 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
                 if inv:get_stack('trade', 1):get_count() >= i then
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
                 else
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.tool_cap_data.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
                 end
 
                 formspec[#formspec + 1] = 'image[2.5,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'

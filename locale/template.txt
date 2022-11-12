@@ -5,6 +5,7 @@ Unbreaking=
 Efficiency=
 Silk Touch=
 Curse of Vanishing=
+Knockback=
 Enchanted=
 Enchant=
 level=

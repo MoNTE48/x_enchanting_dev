@@ -17,6 +17,10 @@ end)
 
 minetest.register_on_joinplayer(function(player, last_login)
     XEnchanting.form_context[player:get_player_name()] = nil
+
+    if not XEnchanting.player_seeds[player:get_player_name()] then
+        XEnchanting.player_seeds[player:get_player_name()] = XEnchanting.get_randomseed()
+    end
 end)
 
 minetest.register_on_leaveplayer(function(player, timed_out)
@@ -35,28 +39,14 @@ function minetest.handle_node_drops(pos, drops, digger)
 
     local wield_stack = digger:get_wielded_item()
     local wield_stack_meta = wield_stack:get_meta()
-    if wield_stack_meta:get_int('is_silk_touch') == 0 then
+
+    if wield_stack_meta:get_float('is_silk_touch') == 0 then
         return old_handle_node_drops(pos, drops, digger)
     end
 
-    local wield_stack_name = wield_stack:get_name()
     local node = minetest.get_node(pos)
-    local silk_touch_group
 
-    if minetest.get_item_group(wield_stack_name, 'pickaxe') > 0 then
-        silk_touch_group = 'cracky'
-    elseif minetest.get_item_group(wield_stack_name, 'shovel') > 0 then
-        silk_touch_group = 'crumbly'
-    elseif minetest.get_item_group(wield_stack_name, 'axe') > 0 then
-        silk_touch_group = 'choppy'
-    elseif minetest.get_item_group(wield_stack_name, 'sword') > 0 then
-        silk_touch_group = 'snappy'
-    end
-
-    if not silk_touch_group
-        or minetest.get_item_group(node.name, silk_touch_group) == 0
-        or minetest.get_item_group(node.name, 'no_silktouch') == 1
-    then
+    if minetest.get_item_group(node.name, 'no_silktouch') == 1 then
         return old_handle_node_drops(pos, drops, digger)
     end
 
@@ -77,10 +67,8 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
                 for i = 1, player_inv:get_size(list_name) do
                     local stack = player_inv:get_stack(list_name, i)
                     local stack_meta = stack:get_meta()
-                    local is_curse_of_vanishing = stack_meta:get_int('is_curse_of_vanishing')
 
-
-                    if is_curse_of_vanishing > 0 then
+                    if stack_meta:get_float('is_curse_of_vanishing') > 0 then
                         player_inv:set_stack(list_name, i, ItemStack(''))
                     end
                 end
@@ -92,6 +80,41 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
 
     return hp_change
 end, true)
+
+-- Knockback (only for players)
+local old_calculate_knockback = minetest.calculate_knockback
+
+function minetest.calculate_knockback(player, hitter, time_from_last_punch,
+    tool_capabilities, dir, distance, damage)
+    if hitter and hitter:is_player() then
+        local hitter_wield_stack = hitter:get_wielded_item()
+        local hitter_wield_stack_meta = hitter_wield_stack:get_meta()
+        local ench_knockback = hitter_wield_stack_meta:get_float('is_knockback')
+
+        if ench_knockback > 0 then
+            local orig_knockback = old_calculate_knockback(
+                player,
+                hitter,
+                time_from_last_punch,
+                tool_capabilities,
+                dir,
+                distance,
+                damage
+            )
+
+            orig_knockback = orig_knockback + 1
+
+            local new_knockback = orig_knockback + (orig_knockback * (ench_knockback / 100))
+
+            player:add_velocity(vector.new(0, new_knockback, 0))
+
+            return new_knockback
+        end
+    end
+
+    return old_calculate_knockback(player, hitter, time_from_last_punch,
+    tool_capabilities, dir, distance, damage)
+end
 
 local mod_end_time = (minetest.get_us_time() - mod_start_time) / 1000000
 

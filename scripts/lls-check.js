@@ -60,6 +60,7 @@ extract.on('end', () => {
             process.exit(1)
         }
 
+        console.log(`${command}  --logpath "${logPath}" --check "${cwd}"`)
         console.log(`\n${stdout}`)
 
         if (fs.existsSync('./logs/check.json')) {

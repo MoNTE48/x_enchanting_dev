@@ -87,6 +87,7 @@
 ---@field place_node fun(pos: Vector, node: SetNodeTable): nil Place node with the same effects that a player would cause
 ---@field add_particle fun(def: ParticleDef): nil
 ---@field registered_tools table<string, ItemDef> Map of registered tool definitions, indexed by name
+---@field registered_entities table<string, ObjectRef> Map of registered entity definitions, indexed by name
 ---@field has_feature fun(args: table<string, boolean> | string): boolean | table returns `boolean, missing_features`, `arg`: string or table in format `{foo=true, bar=true}`, `missing_features`: `{foo=true, bar=true}`
 ---@field handle_node_drops fun(pos: Vector, drops: string[], digger: ObjectRef) `drops`: list of itemstrings. Handles drops from nodes after digging: Default action is to put them into digger's inventory. Can be overridden to get different functionality (e.g. dropping items on ground)
 ---@field register_on_dieplayer fun(func: fun(player: ObjectRef, reason?: string)): nil Called when a player dies. `reason`: a PlayerHPChangeReason table, see register_on_player_hpchange

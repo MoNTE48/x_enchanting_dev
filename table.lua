@@ -102,9 +102,13 @@ minetest.register_node('x_enchanting:table', {
 
         local inv = minetest.get_meta(pos):get_inventory()
 
-        if not inv:is_empty('item') then
+        if not inv:is_empty('item') and inv:get_stack('item', 1):get_meta():get_int('is_enchanted') ~= 1 then
             local item_stack = inv:get_stack('item', 1)
-            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local data = XEnchanting:get_enchantment_data(
+                clicker,
+                #bookshelfs,
+                minetest.registered_tools[item_stack:get_name()]
+            )
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
             meta:set_string('formspec', formspec)
@@ -343,7 +347,11 @@ minetest.register_node('x_enchanting:table', {
             )
 
             local item_stack = inv:get_stack('item', 1)
-            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local data = XEnchanting:get_enchantment_data(
+                player,
+                #bookshelfs,
+                minetest.registered_tools[item_stack:get_name()]
+            )
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
             meta:set_string('formspec', formspec)
@@ -372,7 +380,11 @@ minetest.register_node('x_enchanting:table', {
             )
 
             local item_stack = inv:get_stack('item', 1)
-            local data = XEnchanting:get_enchantment_data(#bookshelfs, minetest.registered_tools[item_stack:get_name()])
+            local data = XEnchanting:get_enchantment_data(
+                player,
+                #bookshelfs,
+                minetest.registered_tools[item_stack:get_name()]
+            )
             local formspec = XEnchanting:get_formspec(pos, p_name, data)
 
             meta:set_string('formspec', formspec)
@@ -416,9 +428,8 @@ minetest.register_node('x_enchanting:table', {
         end
 
         local trade_stack = inv:get_stack('trade', 1)
-        local data = XEnchanting.form_context[p_name].data
 
-        if trade_stack:get_count() < selected_slot or not data then
+        if trade_stack:get_count() < selected_slot then
             return
         end
 
