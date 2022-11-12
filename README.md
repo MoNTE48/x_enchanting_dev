@@ -70,6 +70,10 @@ Causes certain blocks to drop themselves as items instead of their usual drops w
 
 Causes the item to disappear on death.
 
+### Knockback
+
+Increases knockback (players only).
+
 ## Dependencies
 
 - none
