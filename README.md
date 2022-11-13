@@ -8,6 +8,7 @@ Adds Enchanting Mechanics and API.
 
 * adds enchanting table
 * supports all registered tools with known tool groups: pickaxe, shovel, axe, sword, e.g. `groups = {pickaxe = 1}`
+* support all bows with group `{bow = 1}`
 * supports `default:bookshelf` or anything with `group:bookshelf`
 * enchanting trade is for `default:mese_crystal` or anything with `groups = {enchanting_trade = 1}`
 * adds enchantability for all MT default tools, for custom tools the enchantability can be set in the item group, e.g. `groups = {enchantability = 15}`
@@ -50,29 +51,112 @@ Items enchantibility from worst to best:
 
 Increases melee damage.
 
+groups: sword
+
 #### Fortune
 
 Increases the number and/or chances of specific item drops. This value is not used in the engine; it is the responsibility of the game/mod code to implement this.
+
+groups: pickaxe, shovel, axe
 
 #### Unbreaking
 
 Increases the item's durability.
 
+groups: any
+
 #### Efficiency
 
 Increases the player's mining speed. Also adds mining groupcaps to item, e.g. enchanted wood pickaxe can mine level 1 nodes (e.g. obsidian) after enchantment.
+
+groups: pickaxe, shovel, axe
 
 #### Silk Touch
 
 Causes certain blocks to drop themselves as items instead of their usual drops when mined. Mods can prevent this behaviour with adding group `{ no_silktouch = 1 }` to the nodes.
 
+groups: pickaxe, shovel, axe
+
 #### Curse of Vanishing
 
 Causes the item to disappear on death.
 
+groups: any
+
 #### Knockback
 
 Increases knockback (players only).
+
+groups: sword
+
+#### Power
+
+Increases arrow damage.
+Damage has to be calculated in the MOD where the bow comes from!
+
+groups: bow
+
+#### Punch
+
+Increases arrow knockback.
+Knockback has to be calculated in the MOD where the bow comes from!
+
+This can be obtained from tool meta:
+
+groups: bow
+
+#### Infinity
+
+Prevents regular arrows from being consumed when shot.
+One arrow is needed INSIDE QUIVER to use a bow enchanted with Infinity.
+Fired arrows cannot be retrieved even if they are not fired from Quiver.
+Only set in item meta, logic for this has to be in the MOD where the bow comes from!
+
+groups: bow
+
+### API
+
+`ItemStackMetaRef`
+
+* `get_float(key)`: Returns `0` if key not present. `key` can be enchantment id prefixed with `is_`,
+e.g. enchantment `punch` would have stored meta as `is_punch`. If returned value is bigger than zero
+then the value represents enchantment level bonus. See below fields for bow:
+    * `power` Increase percentage
+    * `punch` Multiplier
+    * `infinity` If `1` then it is infinity enchanted
+* `get_string(key)`: Returns `""` if key not present. See below fields for all enchantments:
+    * `x_enchanting` Serialized table with key/value pairs where: `key` is enchantment `id` and `value` is `Enchantment` definition
+
+`Enchantment` definition
+
+* `value` number, Value of the enchantment based on level, e.g. multiplier, percentage/number increase...
+
+example:
+
+```lua
+-- For simplicity assuming that all meta are present (biggger than zero or not "")
+-- MODs have to add those checks individually
+
+local itemstack_meta = itemstack:get_meta()
+
+local power_value = itemstack_meta:get_float('is_power')
+local punch_value = itemstack_meta:get_float('is_punch')
+local infinity_value = itemstack_meta:get_float('is_infinity')
+
+-- Or for list of all enchantments
+local x_enchanting = minetest.deserialize(itemstack_meta:get_string('x_enchanting')) or {}
+local power_enchantment = enchantments.power
+local punch_enchantment = enchantments.punch
+local infinity_enchantment = enchantments.infinity
+
+-- Custom logic
+local new_damage = damage + damage * (punch_enchantment.value / 100)
+local new_knockback = knockback * punch_enchantment.value
+
+if enchantments.infinity.value > 0 then
+    -- Some logic for infinity
+end
+```
 
 ## Dependencies
 

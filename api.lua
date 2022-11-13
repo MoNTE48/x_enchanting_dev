@@ -62,7 +62,10 @@ XEnchanting = {
                 [4] = 5,
                 [5] = 6.25,
             },
-            weight = 10
+            weight = 10,
+            groups = {
+                'sword'
+            }
         },
         fortune = {
             name = S('Fortune'),
@@ -78,7 +81,12 @@ XEnchanting = {
                 [2] = 2,
                 [3] = 3
             },
-            weight = 2
+            weight = 2,
+            groups = {
+                'pickaxe',
+                'shovel',
+                'axe'
+            }
         },
         unbreaking = {
             name = S('Unbreaking'),
@@ -94,7 +102,9 @@ XEnchanting = {
                 [2] = 200,
                 [3] = 300
             },
-            weight = 5
+            weight = 5,
+            -- all applicable
+            groups = nil
         },
         efficiency = {
             name = S('Efficiency'),
@@ -114,7 +124,12 @@ XEnchanting = {
                 [4] = 40,
                 [5] = 45,
             },
-            weight = 10
+            weight = 10,
+            groups = {
+                'pickaxe',
+                'shovel',
+                'axe'
+            }
         },
         silk_touch = {
             name = S('Silk Touch'),
@@ -125,7 +140,12 @@ XEnchanting = {
                 [1] = 1
             },
             weight = 1,
-            secondary = true
+            secondary = true,
+            groups = {
+                'pickaxe',
+                'shovel',
+                'axe'
+            }
         },
         curse_of_vanishing = {
             name = S('Curse of Vanishing'),
@@ -136,7 +156,9 @@ XEnchanting = {
                 [1] = 1
             },
             weight = 1,
-            secondary = true
+            secondary = true,
+            -- all applicable
+            groups = nil
         },
         knockback = {
             name = S('Knockback'),
@@ -149,7 +171,70 @@ XEnchanting = {
                 [1] = 105,
                 [2] = 190
             },
-            weight = 5
+            weight = 5,
+            groups = {
+                'sword'
+            }
+        },
+        power = {
+            -- Increases arrow damage.
+            -- Damage has to be calculated in the MOD where the bow comes from!
+            name = S('Power'),
+            final_level_range = {
+                [1] = { 1, 16 },
+                [2] = { 11, 26 },
+                [3] = { 21, 36 },
+                [4] = { 31, 46 },
+                [5] = { 41, 56 }
+            },
+            -- increase %
+            level_def = {
+                [1] = 50,
+                [2] = 75,
+                [3] = 100,
+                [4] = 125,
+                [5] = 150
+            },
+            weight = 10,
+            groups = {
+                'bow'
+            }
+        },
+        punch = {
+            -- Increases arrow knockback.
+            -- Knockback has to be calculated in the MOD where the bow comes from!
+            name = S('Punch'),
+            final_level_range = {
+                [1] = { 12, 37 },
+                [2] = { 32, 57 }
+            },
+            -- multiplier
+            level_def = {
+                [1] = 3,
+                [2] = 6
+            },
+            weight = 2,
+            groups = {
+                'bow'
+            }
+        },
+        infinity = {
+            -- Prevents regular arrows from being consumed when shot.
+            -- One arrow is needed to use a bow enchanted with Infinity.
+            -- Only set in item meta, logic for this has to be in the MOD where the bow comes from!
+            name = S('Infinity'),
+            final_level_range = {
+                [1] = { 20, 50 }
+            },
+            -- will be set in meta as float
+            level_def = {
+                [1] = 1
+            },
+            weight = 1,
+            secondary = true,
+            groups = {
+                'bow'
+            }
         },
     },
     form_context = {},
@@ -192,17 +277,22 @@ function XEnchanting.has_tool_group(self, name)
         return 'axe'
     elseif minetest.get_item_group(name, 'sword') > 0 then
         return 'sword'
+    elseif minetest.get_item_group(name, 'bow') > 0 then
+        return 'bow'
     end
 
     return false
 end
 
 function XEnchanting.set_tool_enchantability(self, tool_def)
+    if minetest.get_item_group(tool_def.name, 'enchantability') > 0 then
+        -- enchantability is already set, we dont need to override the item
+        return
+    end
+
     local _enchantability = 1
 
-    if minetest.get_item_group(tool_def.name, 'enchantability') > 0 then
-        _enchantability = minetest.get_item_group(tool_def.name, 'enchantability')
-    elseif self.tools_enchantability[tool_def.name] then
+    if self.tools_enchantability[tool_def.name] then
         _enchantability = self.tools_enchantability[tool_def.name]
     end
 
@@ -390,16 +480,22 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
     end
 
     local stack_meta = itemstack:get_meta()
+    ---@type table<string, {["value"]: number}>
+    local final_enchantments_meta = {}
 
     for i, enchantment in ipairs(final_enchantments) do
         stack_meta:set_float('is_' .. enchantment.id, enchantment.value)
+        -- store only necessary data, keeping the meta optimized
+        final_enchantments_meta[enchantment.id] = {
+            value = enchantment.value
+        }
     end
 
     stack_meta:set_tool_capabilities(capabilities)
     stack_meta:set_string('description', itemstack:get_description() .. '\n' .. description)
     stack_meta:set_string('short_description', S('Enchanted') .. ' ' .. itemstack:get_short_description())
     stack_meta:set_int('is_enchanted', 1)
-    stack_meta:set_string('x_enchanting', minetest.serialize({ enchantments = final_enchantments }))
+    stack_meta:set_string('x_enchanting', minetest.serialize(final_enchantments_meta))
 
     inv:set_stack('item', 1, itemstack)
 
@@ -431,6 +527,25 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
 
     if _nr_of_bookshelfs > 15 then
         _nr_of_bookshelfs = 15
+    end
+
+    ----
+    -- Filter out enchantments compatible for this item group
+    ----
+
+    local group_enchantments = {}
+
+    for enchantment_name, enchantment_def in pairs(self.enchantment_defs) do
+        if not enchantment_def.groups then
+            group_enchantments[enchantment_name] = enchantment_def
+        else
+            for i, group in ipairs(enchantment_def.groups) do
+                if minetest.get_item_group(tool_def.name, group) > 0 then
+                    group_enchantments[enchantment_name] = enchantment_def
+                    break
+                end
+            end
+        end
     end
 
     ----
@@ -474,7 +589,7 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
         -- Get level
         -- If the modified level is within two overlapping ranges for the same
         -- enchantment type, the higher power value is used.
-        for enchantment_name, enchantment_def in pairs(self.enchantment_defs) do
+        for enchantment_name, enchantment_def in pairs(group_enchantments) do
             local levels = {}
 
             -- find matching levels

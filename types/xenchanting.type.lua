@@ -23,6 +23,7 @@
 ---@field level_def table<number, number> Level bonus. Value will be set in item meta as float.
 ---@field weight number Enchantment weight
 ---@field secondary boolean Will not appear in masked description and can be applied only as additional enchantment by probability chance.
+---@field groups string[] | nil List of groups for items what are compatible with this enchantment. If `nil` then all groups are compatible.
 
 
 ---Form context
@@ -36,10 +37,10 @@
 
 
 ---@class Enchantment
----@field id string
----@field value number
----@field level number
----@field secondary boolean Will not appear in masked description and can be applied only as additional enchantment by probability chance.
+---@field id string Unique ID of the enchantment
+---@field value number Value of the enchantment based on level
+---@field level number Level of the enchantment
+---@field secondary boolean | nil Will not appear in masked description and can be applied only as additional enchantment by probability chance.
 
 
 ---@class EnchantmentDataSlot
