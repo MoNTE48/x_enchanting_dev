@@ -112,8 +112,6 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
                         player_inv:set_stack(list_name, i, ItemStack(''))
                     end
                 end
-
-                player_inv:set_list(list_name, {})
             end
         end
     end
