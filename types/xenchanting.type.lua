@@ -14,6 +14,7 @@
 ---@field form_context table<string, FormContextDef> Additional form data for player.
 ---@field scroll_animations table<string, table> Parameters for `ObjectRef` `set_animation` method
 ---@field player_seeds table<string, number | integer>
+---@field registered_ores table<string, boolean> Table with registered ores, `key` ore name
 
 
 ---Enchantment definition
@@ -24,6 +25,7 @@
 ---@field weight number Enchantment weight
 ---@field secondary boolean Will not appear in masked description and can be applied only as additional enchantment by probability chance.
 ---@field groups string[] | nil List of groups for items what are compatible with this enchantment. If `nil` then all groups are compatible.
+---@field incompatible string[] | nil List of incompatible enchantments
 
 
 ---Form context
@@ -41,6 +43,7 @@
 ---@field value number Value of the enchantment based on level
 ---@field level number Level of the enchantment
 ---@field secondary boolean | nil Will not appear in masked description and can be applied only as additional enchantment by probability chance.
+---@field incompatible string[] | nil List of incompatible enchantments
 
 
 ---@class EnchantmentDataSlot

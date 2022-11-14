@@ -27,6 +27,7 @@
 ---@field on_destruct fun(pos: Vector) Node destructor; called before removing node. Not called for bulk node placement. default: nil
 ---@field on_blast fun(pos: Vector, intensity?: number): nil intensity: 1.0 = mid range of regular TNT. If defined, called when an explosion touches the node, instead of removing the node.
 ---@field on_timer fun(pos: Vector, elapsed: number): boolean | nil default: nil, called by NodeTimers, see minetest.get_node_timer and NodeTimerRef. elapsed is the total time passed since the timer was started. return true to run the timer for another cycle with the same timeout value.
+---@field _next_state string Only for x_farming composter
 
 ---Textures of node; +Y, -Y, +X, -X, +Z, -Z. List can be shortened to needed length.
 ---@class NodeTilesDef

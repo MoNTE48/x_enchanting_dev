@@ -67,6 +67,25 @@ XEnchanting = {
                 'sword'
             }
         },
+        looting = {
+            name = S('Looting'),
+            -- what level should be taken, `level = min/max values`
+            final_level_range = {
+                [1] = { 15, 65 },
+                [2] = { 24, 74 },
+                [3] = { 33, 83 }
+            },
+            -- level definition, `level = number to add`
+            level_def = {
+                [1] = 1,
+                [2] = 2,
+                [3] = 3
+            },
+            weight = 2,
+            groups = {
+                'sword'
+            }
+        },
         fortune = {
             name = S('Fortune'),
             -- what level should be taken, `level = min/max values`
@@ -86,7 +105,8 @@ XEnchanting = {
                 'pickaxe',
                 'shovel',
                 'axe'
-            }
+            },
+            incompatible = { 'silk_touch' }
         },
         unbreaking = {
             name = S('Unbreaking'),
@@ -145,7 +165,8 @@ XEnchanting = {
                 'pickaxe',
                 'shovel',
                 'axe'
-            }
+            },
+            incompatible = { 'fortune' }
         },
         curse_of_vanishing = {
             name = S('Curse of Vanishing'),
@@ -244,7 +265,8 @@ XEnchanting = {
         scroll_close = { { x = 45, y = 84 }, 80, 0, false },
         scroll_open_idle = { { x = 41, y = 42 }, 0, 0, false },
         scroll_closed_idle = { { x = 43, y = 44 }, 0, 0, false }
-    }
+    },
+    registered_ores = {}
 }
 
 ---Merge two tables with key/value pair
@@ -408,7 +430,7 @@ function XEnchanting.get_enchanted_tool_capabilities(self, tool_def, enchantment
         end
 
         -- Fortune
-        if enchantment.id == 'fortune' and tool_capabilities.max_drop_level then
+        if enchantment.id == 'fortune' or enchantment.id == 'looting' and tool_capabilities.max_drop_level then
             local old_max_drop_level = tool_capabilities.max_drop_level
             local new_max_drop_level = old_max_drop_level + enchantment.value
 
@@ -610,7 +632,8 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
                     id = enchantment_name,
                     value = enchantment_def.level_def[level],
                     level = level,
-                    secondary = enchantment_def.secondary
+                    secondary = enchantment_def.secondary,
+                    incompatible = enchantment_def.incompatible
                 })
             end
         end
@@ -628,10 +651,11 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
             total_weight = total_weight + self.enchantment_defs[enchantment.id].weight
         end
 
-        -- Pick a random integer in the half range [0; total_weight] as a number `rand_weight`
+        -- Pick a random integer in the half range [0; total_weight / 2] as a number `rand_weight`
         local rand_weight = math.random(0, total_weight / 2)
         -- local probability = (final_level + 1) / 50
         local probability_level = final_level
+        ---@type Enchantment[]
         local possible_enchantments_excl_secodnary = {}
 
         for _, enchantment in pairs(possible_enchantments) do
@@ -648,22 +672,40 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
             local rand_ench = possible_enchantments[rand_ench_idx]
 
             if j == 1 then
+                -- First pick
                 -- Dont add cursed/secondary enchantment as first pick
                 rand_ench_idx = math.random(1, #possible_enchantments_excl_secodnary)
                 rand_ench = possible_enchantments_excl_secodnary[rand_ench_idx]
+
+                table.insert(final_enchantments, rand_ench)
 
                 for idx, value in pairs(possible_enchantments) do
                     if rand_ench.id == value.id then
                         table.remove(possible_enchantments, idx)
                     end
+
+                    -- remove incomaptible enchantments
+                    if rand_ench.incompatible
+                        and table.indexof(rand_ench.incompatible, value.id) ~= -1
+                    then
+                        table.remove(possible_enchantments, idx)
+                    end
                 end
 
-                table.insert(final_enchantments, rand_ench)
             else
                 local probability = (probability_level + 1) / 50
 
-                table.remove(possible_enchantments, rand_ench_idx)
                 table.insert(final_enchantments, rand_ench)
+                table.remove(possible_enchantments, rand_ench_idx)
+
+                for idx, value in pairs(possible_enchantments) do
+                    -- remove incomaptible enchantments
+                    if rand_ench.incompatible
+                        and table.indexof(rand_ench.incompatible, value.id) ~= -1
+                    then
+                        table.remove(possible_enchantments, idx)
+                    end
+                end
 
                 -- With probability (`final_level` + 1) / 50, keep going. Otherwise, stop picking bonus enchantments.
                 local rand_probability = math.random()

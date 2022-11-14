@@ -55,7 +55,9 @@ groups: sword
 
 #### Fortune
 
-Increases the number and/or chances of specific item drops. This value is not used in the engine; it is the responsibility of the game/mod code to implement this.
+Increases the number and/or chances of specific item drops. Works with groups: stone, soil, sand, snowy, slippery, tree, leaves and all registered ores.
+
+Incompatible: Silk Touch
 
 groups: pickaxe, shovel, axe
 
@@ -75,6 +77,8 @@ groups: pickaxe, shovel, axe
 
 Causes certain blocks to drop themselves as items instead of their usual drops when mined. Mods can prevent this behaviour with adding group `{ no_silktouch = 1 }` to the nodes.
 
+Incompatible: Fortune
+
 groups: pickaxe, shovel, axe
 
 #### Curse of Vanishing
@@ -86,6 +90,12 @@ groups: any
 #### Knockback
 
 Increases knockback (players only).
+
+groups: sword
+
+#### Looting
+
+Cause mobs to drop more items. This value is not used in the engine; it is the responsibility of the game/mod code to implement this.
 
 groups: sword
 
