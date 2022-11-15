@@ -74,7 +74,7 @@ minetest.register_on_mods_loaded(function()
 
                         if death_by_player and pos then
                             for _, drop in ipairs(def.drops) do
-                                if math.random(1, 2) == 1 then
+                                if math.random(10, 100) / 100 < looting / (looting + 1) then
                                     local drop_min = drop.min or 0
                                     local drop_max = drop.max or 0
                                     local count = math.random(drop_min, drop_max)
