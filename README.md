@@ -97,6 +97,8 @@ groups: sword
 
 Cause mobs to drop more items. This value is not used in the engine; it is the responsibility of the game/mod code to implement this.
 
+Supported: mobs_monster, mobs_animal
+
 groups: sword
 
 #### Power

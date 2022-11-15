@@ -7,16 +7,94 @@ local mod_start_time = minetest.get_us_time()
 dofile(path .. '/api.lua')
 dofile(path .. '/table.lua')
 
+---Check if string X starts with string Y
+---@param str string
+---@param start string
+---@return boolean
+local function starts_with(str, start)
+    return str:sub(1, #start) == start
+end
+
 minetest.register_on_mods_loaded(function()
+    -- Tools override
     for name, tool_def in pairs(minetest.registered_tools) do
         if XEnchanting:has_tool_group(name) then
             XEnchanting:set_tool_enchantability(tool_def)
         end
     end
 
+    -- Ores override
     for _, def in pairs(minetest.registered_ores) do
         if not XEnchanting.registered_ores[def.ore] then
             XEnchanting.registered_ores[def.ore] = true
+        end
+    end
+
+    -- Entities override
+    for name, def in pairs(minetest.registered_entities) do
+        if starts_with(name, 'mobs_animal:')
+            or starts_with(name, 'mobs_monster:')
+        then
+            if def.on_punch and def.drops then
+                local prev_on_punch = def.on_punch
+
+                ---@param self table
+                ---@param puncher ObjectRef|nil
+                ---@param time_from_last_punch number|integer|nil
+                ---@param tool_capabilities ToolCapabilitiesDef|nil
+                ---@param dir Vector
+                ---@param damage number|integer
+                ---@return boolean|nil
+                def.on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
+                    if not self
+                        or not self.object
+                        or not self.object:get_luaentity()
+                        or not puncher
+                        or not tool_capabilities
+                    then
+                        return prev_on_punch(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
+                    end
+
+                    local wield_stack = puncher:get_wielded_item()
+                    local wield_stack_meta = wield_stack:get_meta()
+                    local looting = wield_stack_meta:get_float('is_looting')
+
+                    if looting == 0 then
+                        return prev_on_punch(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
+                    end
+
+                    local pos = self.object:get_pos()
+
+                    prev_on_punch(self, puncher, time_from_last_punch, tool_capabilities, dir, damage)
+
+                    if self.health and self.health <= 0 then
+                        local death_by_player = self.cause_of_death
+                            and self.cause_of_death.puncher
+                            and self.cause_of_death.puncher:is_player()
+
+                        if death_by_player and pos then
+                            for _, drop in ipairs(def.drops) do
+                                if math.random(1, 2) == 1 then
+                                    local drop_min = drop.min or 0
+                                    local drop_max = drop.max or 0
+                                    local count = math.random(drop_min, drop_max)
+                                    local stack = ItemStack({
+                                        name = drop.name,
+                                        count = count
+                                    })
+                                    local chance = math.random(1, tool_capabilities.max_drop_level)
+
+                                    stack:set_count(stack:get_count() * chance)
+
+                                    if stack:get_count() > 0 then
+                                        minetest.item_drop(stack, puncher, pos)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end)
@@ -99,7 +177,6 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
     if (player:get_hp() + hp_change) <= 0 then
         -- Going to die
         local player_inv = player:get_inventory() --[[@as InvRef]]
-
         local player_inventory_lists = { 'main', 'craft' }
 
         for _, list_name in ipairs(player_inventory_lists) do
