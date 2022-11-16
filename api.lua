@@ -1,5 +1,3 @@
-default = minetest.global_exists('default') and default --[[@as MtgDefault]]
-
 local S = minetest.get_translator(minetest.get_current_modname())
 
 ---@type XEnchanting
@@ -743,6 +741,39 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
     return data
 end
 
+local function get_hotbar_bg(x, y)
+    local out = ''
+
+    for i = 0, 7, 1 do
+        out = out .. 'image[' .. x + i .. ',' .. y .. ';1,1;x_enchanting_gui_hb_bg.png]'
+    end
+
+    return out
+end
+
+local function get_list_bg(x, y)
+    local out = ''
+
+    for row = 0, 2, 1 do
+        for i = 0, 7, 1 do
+            out = out .. 'image[' .. x + i .. ',' .. y + row .. ';1,1;x_enchanting_gui_slot_bg.png]'
+        end
+    end
+
+    return out
+end
+
+local function get_formspec_bg(player_name)
+    local info = minetest.get_player_information(player_name)
+    local bg = 'background[5,5;1,1;x_enchanting_gui_formbg.png;true]'
+
+    if info.formspec_version > 1 then
+        bg = 'background9[5,5;1,1;x_enchanting_gui_formbg.png;true;10]'
+    end
+
+    return bg
+end
+
 function XEnchanting.get_formspec(self, pos, player_name, data)
     local spos = pos.x .. ',' .. pos.y .. ',' .. pos.z
     local inv = minetest.get_meta(pos):get_inventory()
@@ -754,21 +785,29 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
     local formspec = {
         'size[8,9]',
+        'bgcolor[#080808BB;true]',
+        'listcolors[#FFFFFF00;#FFFFFF1A;#FFFFFF00;#30434C;#FFF]',
+        get_formspec_bg(player_name),
+        'style_type[label;font=mono,bold]',
+        'style[slot_1,slot_2,slot_3;font=mono,bold;textcolor=#4D413A]',
         'label[0, 0;' .. S('Enchant') .. ']',
+        -- item
         'list[nodemeta:' .. spos .. ';item;0, 2.5;1, 1;]',
-        'image[1,2.5;1,1;x_enchanting_trade_slot.png;]',
+        'image[0, 2.5;1,1;x_enchanting_gui_cloth_bg.png]',
+        -- trade
         'list[nodemeta:' .. spos .. ';trade;1, 2.5;1, 1;]',
+        'image[1, 2.5;1,1;x_enchanting_gui_cloth_trade_bg.png]',
+        -- inventories
         'list[current_player;main;0, 4.85;8, 1;]',
         'list[current_player;main;0, 6.08;8, 3;8]',
         'listring[nodemeta:' .. spos .. ';trade]',
         'listring[current_player;main]',
         'listring[nodemeta:' .. spos .. ';item]',
-        'listring[current_player;main]'
+        'listring[current_player;main]',
     }
 
-    if default then
-        formspec[#formspec + 1] = default.get_hotbar_bg(0, 4.85)
-    end
+    formspec[#formspec + 1] = get_hotbar_bg(0, 4.85)
+    formspec[#formspec + 1] = get_list_bg(0, 6.08)
 
     -- data
     if data then
@@ -778,17 +817,17 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
                 if inv:get_stack('trade', 1):get_count() >= i then
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '  ' .. minetest.colorize('#594E47', S('level') .. ': ' .. slot.level) .. ']'
                 else
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '    ' .. minetest.colorize('#FFFF00', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '  ' .. minetest.colorize('#594E47', S('level') .. ': ' .. slot.level) .. ']'
                 end
 
-                formspec[#formspec + 1] = 'image[2.5,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'
+                formspec[#formspec + 1] = 'image[2.75,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'
             else
                 -- disabled buttons
                 ---@diagnostic disable-next-line: codestyle-check
-                formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
+                formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
             end
         end
 
@@ -797,7 +836,7 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
         for i = 1, 3, 1 do
             -- disabled buttons
             ---@diagnostic disable-next-line: codestyle-check
-            formspec[#formspec + 1] = 'image_button[2.5,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
+            formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
         end
 
         model_scroll_is_open = false

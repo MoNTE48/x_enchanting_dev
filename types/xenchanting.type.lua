@@ -15,6 +15,7 @@
 ---@field scroll_animations table<string, table> Parameters for `ObjectRef` `set_animation` method
 ---@field player_seeds table<string, number | integer>
 ---@field registered_ores table<string, boolean> Table with registered ores, `key` ore name
+---@field settings {["x_enchanting_small_formspec"]: boolean}
 
 
 ---Enchantment definition

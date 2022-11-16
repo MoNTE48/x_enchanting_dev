@@ -23,14 +23,14 @@ minetest.register_on_mods_loaded(function()
         end
     end
 
-    -- Ores override
+    -- Ores override - Fortune
     for _, def in pairs(minetest.registered_ores) do
         if not XEnchanting.registered_ores[def.ore] then
             XEnchanting.registered_ores[def.ore] = true
         end
     end
 
-    -- Entities override
+    -- Entities override - Looting
     for name, def in pairs(minetest.registered_entities) do
         if starts_with(name, 'mobs_animal:')
             or starts_with(name, 'mobs_monster:')
