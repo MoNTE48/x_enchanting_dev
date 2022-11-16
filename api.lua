@@ -473,7 +473,7 @@ function XEnchanting.get_enchanted_descriptions(self, enchantments)
 
     enchantments_desc = '\n' .. minetest.colorize('#AE81FF', S('Enchanted'))
         .. '\n' .. table.concat(enchantments_desc, '\n')
-    enchantments_desc_masked = table.concat(enchantments_desc_masked, '') .. '...?'
+    enchantments_desc_masked = table.concat(enchantments_desc_masked, '') .. '..?'
 
     return {
         enchantments_desc = enchantments_desc,
@@ -534,6 +534,58 @@ function XEnchanting.set_enchanted_tool(self, pos, itemstack, level, player_name
         pos = pos,
         max_hear_distance = 10
     }, true)
+
+    -- particles
+    local particlespawner_def = {
+        amount = 50,
+        time = 0.5,
+        minpos = { x = pos.x - 1, y = pos.y + 1, z = pos.z - 1 },
+        maxpos = { x = pos.x + 1, y = pos.y + 1.5, z = pos.z + 1 },
+        minvel = { x = -0.1, y = -0.5, z = -0.1 },
+        maxvel = { x = 0.1, y = -1.5, z = 0.1 },
+        minacc = { x = -0.1, y = -0.5, z = -0.1 },
+        maxacc = { x = 0.1, y = -1.5, z = 0.1 },
+        minexptime = 0.5,
+        maxexptime = 1,
+        minsize = 0.5,
+        maxsize = 1,
+        texture = 'x_enchanting_scroll_particle.png^[colorize:#A179E9:256',
+        glow = 1
+    }
+
+    if minetest.has_feature({ dynamic_add_media_table = true, particlespawner_tweenable = true }) then
+        -- new syntax, after v5.6.0
+        particlespawner_def = {
+            amount = 50,
+            time = 0.5,
+            size = {
+                min = 0.5,
+                max = 1,
+            },
+            exptime = 2,
+            pos = {
+                min = vector.new({ x = pos.x - 1.5, y = pos.y + 1, z = pos.z - 1.5 }),
+                max = vector.new({ x = pos.x + 1.5, y = pos.y + 1.5, z = pos.z + 1.5 }),
+            },
+            attract = {
+                kind = 'point',
+                strength = 2,
+                origin = vector.new({ x = pos.x, y = pos.y + 0.65, z = pos.z }),
+                die_on_contact = true
+            },
+            texture = {
+                name = 'x_enchanting_scroll_particle.png^[colorize:#A179E9:256',
+                alpha_tween = {
+                    0.5, 1,
+                    style = 'fwd',
+                    reps = 1
+                }
+            },
+            glow = 1
+        }
+    end
+
+    minetest.add_particlespawner(particlespawner_def)
 end
 
 function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_def)
@@ -817,17 +869,17 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
 
                 if inv:get_stack('trade', 1):get_count() >= i then
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '  ' .. minetest.colorize('#594E47', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[3.125,' .. -0.5 + i .. ';5.125,1;x_enchanting_image_button.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. minetest.formspec_escape(' [' .. slot.level .. ']') .. ']'
                 else
                     ---@diagnostic disable-next-line: codestyle-check
-                    formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. '  ' .. minetest.colorize('#594E47', S('level') .. ': ' .. slot.level) .. ']'
+                    formspec[#formspec + 1] = 'image_button[3.125,' .. -0.5 + i .. ';5.125,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';' .. slot.descriptions.enchantments_desc_masked .. minetest.formspec_escape(' [' .. slot.level .. ']') .. ']'
                 end
 
-                formspec[#formspec + 1] = 'image[2.75,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'
+                formspec[#formspec + 1] = 'image[2.3,' .. -0.5 + i .. ';1,1;x_enchanting_image_trade_' .. i .. '.png;]'
             else
                 -- disabled buttons
                 ---@diagnostic disable-next-line: codestyle-check
-                formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
+                formspec[#formspec + 1] = 'image_button[3.125,' .. -0.5 + i .. ';5.125,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
             end
         end
 
@@ -836,7 +888,7 @@ function XEnchanting.get_formspec(self, pos, player_name, data)
         for i = 1, 3, 1 do
             -- disabled buttons
             ---@diagnostic disable-next-line: codestyle-check
-            formspec[#formspec + 1] = 'image_button[2.75,' .. -0.5 + i .. ';5,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
+            formspec[#formspec + 1] = 'image_button[3.125,' .. -0.5 + i .. ';5.125,1;x_enchanting_image_button_disabled.png;slot_' .. i .. ';]'
         end
 
         model_scroll_is_open = false
