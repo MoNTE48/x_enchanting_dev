@@ -337,8 +337,11 @@ minetest.register_node('x_enchanting:table', {
         local meta = minetest.get_meta(pos)
         local p_name = player:get_player_name()
         local inv = meta:get_inventory()
+        local item_stack = inv:get_stack('item', 1)
+        local item_stack_meta = item_stack:get_meta()
+        local is_enchanted = item_stack_meta:get_int('is_enchanted')
 
-        if not inv:is_empty('item') then
+        if not inv:is_empty('item') and is_enchanted == 0 then
             -- bookshelfs
             local bookshelfs = minetest.find_nodes_in_area(
                 { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
@@ -346,7 +349,6 @@ minetest.register_node('x_enchanting:table', {
                 { 'default:bookshelf', 'group:bookshelf' }
             )
 
-            local item_stack = inv:get_stack('item', 1)
             local data = XEnchanting:get_enchantment_data(
                 player,
                 #bookshelfs,
@@ -370,8 +372,11 @@ minetest.register_node('x_enchanting:table', {
         local meta = minetest.get_meta(pos)
         local p_name = player:get_player_name()
         local inv = meta:get_inventory()
+        local item_stack = inv:get_stack('item', 1)
+        local item_stack_meta = item_stack:get_meta()
+        local is_enchanted = item_stack_meta:get_int('is_enchanted')
 
-        if not inv:is_empty('item') then
+        if not inv:is_empty('item') and is_enchanted == 0 then
             -- bookshelfs
             local bookshelfs = minetest.find_nodes_in_area(
                 { x = pos.x - 2, y = pos.y, z = pos.z - 2 },
@@ -379,7 +384,6 @@ minetest.register_node('x_enchanting:table', {
                 { 'default:bookshelf', 'group:bookshelf' }
             )
 
-            local item_stack = inv:get_stack('item', 1)
             local data = XEnchanting:get_enchantment_data(
                 player,
                 #bookshelfs,
