@@ -95,6 +95,63 @@ minetest.register_on_mods_loaded(function()
                     end
                 end
             end
+        elseif starts_with(name, 'animalia:') then
+            if def.death_func and def.drops then
+                local prev_death_func = def.death_func
+
+                ---@param self table
+                def.death_func = function(self)
+                    local puncher = self._puncher
+
+                    if not self
+                        or not self.object
+                        or not self.object:get_luaentity()
+                        or not puncher
+                        or not puncher:is_player()
+                        or self._looting_dropped
+                    then
+                        return prev_death_func(self)
+                    end
+
+                    local wield_stack = puncher:get_wielded_item()
+                    local wield_stack_meta = wield_stack:get_meta()
+                    local looting = wield_stack_meta:get_float('is_looting')
+
+                    if looting == 0 then
+                        return prev_death_func(self)
+                    end
+
+                    local pos = self.object:get_pos()
+
+                    prev_death_func(self)
+
+                    local death_by_player = puncher and puncher:is_player()
+
+                    if death_by_player and pos then
+                        local tool_capabilities = wield_stack:get_tool_capabilities()
+                        self._looting_dropped = true
+
+                        for _, drop in ipairs(def.drops) do
+                            if math.random(10, 100) / 100 < looting / (looting + 1) then
+                                local drop_min = drop.min or 0
+                                local drop_max = drop.max or 0
+                                local count = math.random(drop_min, drop_max)
+                                local stack = ItemStack({
+                                    name = drop.name,
+                                    count = count
+                                })
+                                local chance = math.random(1, tool_capabilities.max_drop_level)
+
+                                stack:set_count(stack:get_count() * chance)
+
+                                if stack:get_count() > 0 then
+                                    minetest.item_drop(stack, puncher, pos)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end)
