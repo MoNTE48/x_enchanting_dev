@@ -535,6 +535,7 @@ minetest.register_entity('x_enchanting:table_scroll', {
                         local distance = vector.distance(pos, obj:get_pos())
 
                         if distance < shortest_distance then
+                            shortest_distance = distance
                             self._player = obj
                         end
                     end
