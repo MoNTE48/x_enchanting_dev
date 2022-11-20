@@ -301,6 +301,12 @@ function XEnchanting.has_tool_group(self, name)
         return 'bow'
     end
 
+    -- Temporary
+    local tool_def = minetest.registered_tools[name]
+    if tool_def and tool_def.tool_capabilities then
+        return true
+    end
+
     return false
 end
 
@@ -645,7 +651,7 @@ function XEnchanting.get_enchantment_data(self, player, nr_of_bookshelfs, tool_d
         -- A random bonus, between .85 and 1.15
         local rand_bonus_percent = 1 + ((math.random(0, 99) / 100) + (math.random(0, 99) / 100) - 1) * 0.15
         -- Finally, we calculate the level
-        local final_level = math.round(k * rand_bonus_percent)
+        local final_level = math.floor(k * rand_bonus_percent)
 
         if final_level < 1 then
             final_level = 1

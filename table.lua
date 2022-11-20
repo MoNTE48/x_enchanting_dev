@@ -287,7 +287,7 @@ minetest.register_node('x_enchanting:table', {
             return stack:get_count()
         elseif listname == 'trade'
             and (
-                st_name == 'default:mese_crystal'
+                st_name == 'default:diamond'
                 or minetest.get_item_group(st_name, 'enchanting_trade') > 0
             )
             and is_enchanted ~= 1
@@ -309,7 +309,7 @@ minetest.register_node('x_enchanting:table', {
             return stack:get_count()
         elseif listname == 'trade'
             and (
-                st_name == 'default:mese_crystal'
+                st_name == 'default:diamond'
                 or minetest.get_item_group(st_name, 'enchanting_trade') > 0
             )
         then
@@ -598,22 +598,11 @@ minetest.register_entity('x_enchanting:table_scroll', {
 -- Recipe
 ---
 
-if minetest.get_modpath('xdecor') then
-    minetest.register_craft({
-        output = 'x_enchanting:table',
-        recipe = {
-            { 'default:book', '', '' },
-            { 'default:diamond', 'default:obsidian', 'default:diamond' },
-            { 'default:obsidian', 'default:obsidian', 'default:obsidian' }
-        }
-    })
-else
-    minetest.register_craft({
-        output = 'x_enchanting:table',
-        recipe = {
-            { '', 'default:book', '' },
-            { 'default:diamond', 'default:obsidian', 'default:diamond' },
-            { 'default:obsidian', 'default:obsidian', 'default:obsidian' }
-        }
-    })
-end
+minetest.register_craft({
+    output = 'x_enchanting:table',
+    recipe = {
+        { '', 'default:book', '' },
+        { 'default:diamond', 'default:bedrock', 'default:diamond' },
+        { 'default:bedrock', 'default:bedrock', 'default:bedrock' }
+    }
+})
